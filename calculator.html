@@ -5,10 +5,10 @@
   <title>Reken GUI</title>
 </head>
 <body>
-  <h2>Reken GUI</h2>
+  <h2>SysMot Calculator</h2>
   <input type="number" id="inputA" placeholder="Getal A" />
   <input type="number" id="inputB" placeholder="Getal B" />
-  <button id="calcBtn">Bereken A * B</button>
+  <button id="calcBtn">Bereken</button>
   <p>Resultaat: <span id="result">-</span></p>
 
   <script>
@@ -22,8 +22,8 @@
       }
 
       try {
-        const response = await fetch('https://europe-west1-sysmotcalculator.cloudfunctions.net/calculate', {
-		<!-- const response = await fetch('http://127.0.0.1:8080', { -->
+        <!-- const response = await fetch('https://europe-west1-sysmotcalculator.cloudfunctions.net/calculate', { -->
+		const response = await fetch('http://127.0.0.1:8080', {
 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

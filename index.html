@@ -2,43 +2,13 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <title>Reken GUI</title>
+  <title>Welkom bij de Rekenmachine</title>
 </head>
 <body>
-  <h2>Reken GUI</h2>
-  <input type="number" id="inputA" placeholder="Getal A" />
-  <input type="number" id="inputB" placeholder="Getal B" />
-  <button id="calcBtn">Bereken A * B</button>
-  <p>Resultaat: <span id="result">-</span></p>
-
-  <script>
-    const btn = document.getElementById('calcBtn');
-    btn.addEventListener('click', async () => {
-      const a = Number(document.getElementById('inputA').value);
-      const b = Number(document.getElementById('inputB').value);
-      if (isNaN(a) || isNaN(b)) {
-        alert('Voer a.u.b. geldige getallen in.');
-        return;
-      }
-
-      try {
-        const response = await fetch('https://europe-west1-sysmotcalculator.cloudfunctions.net/calculate', {
-		<!-- const response = await fetch('http://127.0.0.1:8080', { -->
-
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ a, b }),
-        });
-        if (!response.ok) {
-          throw new Error('Fout bij server: ' + response.status);
-        }
-		const data = await response.json();
-		document.getElementById('result').textContent = `Product: ${data.product}, Som: ${data.sum}`;
-
-      } catch (err) {
-        alert('Er is een fout opgetreden: ' + err.message);
-      }
-    });
-  </script>
+  <h1>Welkom!</h1>
+  <p>Klik hieronder om de rekenmachine te openen.</p>
+  <a href="calculator.html">
+    <button>Start Rekenmachine</button>
+  </a>
 </body>
 </html>

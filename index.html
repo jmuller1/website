@@ -2,27 +2,69 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welkom bij de Rekenmachine</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* Dit zorgt dat het plaatje horizontaal gecentreerd wordt */
-    .center-image {
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-      max-width: 100%; /* Voor responsiviteit */
+    body {
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: #f0f0f0;
+    }
+
+    .start-btn {
+      background-color: #ffffff;
+      color: #4A90E2;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .start-btn:hover {
+      background-color: #4A90E2;
+      color: #ffffff;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+    }
+
+    img {
+      width: 200px;
       height: auto;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-  <!-- Gecentreerd plaatje -->
-<img src="katten.png" alt="Plaatje" class="center-image" style="width: 150px; height: auto;" />
-
-
+  <img src="katten.png" alt="Welkom" />
   <h1>Welkom!</h1>
   <p>Klik hieronder om de rekenmachine te openen.</p>
-  <a href="calculator.html">
-    <button>Start Rekenmachine</button>
-  </a>
+  <a href="calculator.html" class="start-btn">Start Rekenmachine</a>
 </body>
 </html>

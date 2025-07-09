@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welkom bij de Rekenmachine</title>
+  <title>Welkom!</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -32,19 +32,26 @@
       color: #f0f0f0;
     }
 
+    .button-container {
+      display: flex;
+      flex-direction: column; /* onder elkaar */
+      gap: 15px; /* ruimte tussen knoppen */
+      width: 250px; /* max breedte van de knoppen */
+    }
+
     .start-btn, .brochure-btn {
       background-color: #ffffff;
       color: #4A90E2;
       border: none;
-      padding: 1rem 2rem;
+      padding: 1rem;
       font-size: 1.2rem;
       border-radius: 50px;
       cursor: pointer;
       box-shadow: 0 8px 15px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
       text-decoration: none;
-      display: inline-block;
-      margin: 10px;
+      width: 100%; /* maakt alle knoppen even breed */
+      text-align: center;
     }
 
     .start-btn:hover, .brochure-btn:hover {
@@ -68,7 +75,9 @@
   <h1>Welkom!</h1>
   <p>Maak een keuze:</p>
   
-  <a href="calculator.html" class="start-btn">Start Rekenmachine</a>
-  <a href="brochure.pdf" class="brochure-btn" target="_blank">Bekijk Brochure</a>
+  <div class="button-container">
+    <a href="calculator.html" class="start-btn">Start Rekenmachine</a>
+    <a href="brochure.pdf" class="brochure-btn" target="_blank">Bekijk Brochure</a>
+  </div>
 </body>
 </html>

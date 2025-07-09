@@ -32,7 +32,7 @@
       color: #f0f0f0;
     }
 
-    .start-btn {
+    .start-btn, .brochure-btn {
       background-color: #ffffff;
       color: #4A90E2;
       border: none;
@@ -43,9 +43,11 @@
       box-shadow: 0 8px 15px rgba(0,0,0,0.1);
       transition: all 0.3s ease;
       text-decoration: none;
+      display: inline-block;
+      margin: 10px;
     }
 
-    .start-btn:hover {
+    .start-btn:hover, .brochure-btn:hover {
       background-color: #4A90E2;
       color: #ffffff;
       transform: translateY(-3px);
@@ -64,7 +66,9 @@
 <body>
   <img src="katten.png" alt="Welkom" />
   <h1>Welkom!</h1>
-  <p>Klik hieronder om de rekenmachine te openen.</p>
+  <p>Maak een keuze:</p>
+  
   <a href="calculator.html" class="start-btn">Start Rekenmachine</a>
+  <a href="brochure.pdf" class="brochure-btn" target="_blank">Bekijk Brochure</a>
 </body>
 </html>

@@ -3,81 +3,113 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welkom!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <title>JMuller</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
+    :root {
+      --navy: #061f3d;
+      --blue: #0b63c7;
+      --cyan: #00a6c8;
+      --green: #42b883;
+      --white: #ffffff;
+      --soft: #f5f9fb;
+    }
+
     body {
       margin: 0;
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-      color: #333;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(0, 166, 200, 0.18), transparent 35%),
+        radial-gradient(circle at 75% 30%, rgba(66, 184, 131, 0.16), transparent 35%),
+        linear-gradient(135deg, #f8fbfd 0%, #e9f4f8 50%, #dcecf2 100%);
+      color: var(--navy);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       text-align: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(6, 31, 61, 0.08);
+      border-radius: 32px;
+      padding: 48px 34px;
+      box-shadow: 0 24px 60px rgba(6, 31, 61, 0.12);
+    }
+
+    img.logo {
+      width: min(360px, 85vw);
+      height: auto;
+      margin-bottom: 24px;
     }
 
     h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-      color: #ffffff;
-      text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      margin: 0 0 10px;
+      color: var(--navy);
+      letter-spacing: -0.04em;
     }
 
     p {
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-      color: #f0f0f0;
+      font-size: 1.15rem;
+      margin: 0 0 32px;
+      color: #426074;
     }
 
     .button-container {
       display: flex;
-      flex-direction: column; /* onder elkaar */
-      gap: 15px; /* ruimte tussen knoppen */
-      width: 250px; /* max breedte van de knoppen */
+      flex-direction: column;
+      gap: 14px;
+      width: min(320px, 100%);
+      margin: 0 auto;
     }
 
-    .start-btn, .brochure-btn {
-      background-color: #ffffff;
-      color: #4A90E2;
+    .start-btn,
+    .brochure-btn {
+      background: var(--navy);
+      color: var(--white);
       border: none;
-      padding: 1rem;
-      font-size: 1.2rem;
-      border-radius: 50px;
+      padding: 1rem 1.2rem;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border-radius: 999px;
       cursor: pointer;
-      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
+      box-shadow: 0 10px 24px rgba(6, 31, 61, 0.18);
+      transition: all 0.25s ease;
       text-decoration: none;
-      width: 100%; /* maakt alle knoppen even breed */
       text-align: center;
     }
 
-    .start-btn:hover, .brochure-btn:hover {
-      background-color: #4A90E2;
-      color: #ffffff;
-      transform: translateY(-3px);
-      box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+    .brochure-btn {
+      background: linear-gradient(135deg, var(--blue), var(--green));
     }
 
-    img {
-      width: 200px;
-      height: auto;
-      border-radius: 20px;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    .start-btn:hover,
+    .brochure-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 32px rgba(6, 31, 61, 0.24);
     }
   </style>
 </head>
+
 <body>
-  <img src="katten.png" alt="Welkom" />
-  <h1>Welkom!</h1>
-  <p>Maak een keuze:</p>
-  
-  <div class="button-container">
-    <a href="calculator.html" class="start-btn">Start Rekenmachine</a>
-    <a href="brochure.pdf" class="brochure-btn" target="_blank">Bekijk Brochure</a>
-  </div>
+  <main class="card">
+    <img class="logo" src="logo.png" alt="JMuller logo" />
+
+    <h1>JMuller</h1>
+    <p>Modelleren en simuleren voor klimaat en energie.</p>
+
+    <div class="button-container">
+      <a href="calculator.html" class="start-btn">Start rekenmachine</a>
+      <a href="brochure.pdf" class="brochure-btn" target="_blank">Bekijk brochure</a>
+    </div>
+  </main>
 </body>
 </html>

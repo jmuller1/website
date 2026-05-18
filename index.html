@@ -67,6 +67,7 @@
     .hero {
       width: 100%;
       max-width: 980px;
+      overflow: hidden;
       background: rgba(255, 255, 255, 0.92);
       border: 1px solid var(--line);
       border-radius: 34px;
@@ -87,10 +88,11 @@
     }
 
     .logo {
-      width: min(620px, 94vw);
+      display: block;
+      width: 100%;
+      max-width: 620px;
       height: auto;
       margin: 0 auto 28px;
-      display: block;
     }
 
     .subtitle {
@@ -273,16 +275,26 @@
     }
 
     @media (max-width: 850px) {
+      header {
+        padding: 28px 14px;
+      }
+
+      section {
+        padding: 62px 18px;
+      }
+
       .grid {
         grid-template-columns: 1fr;
       }
 
       .hero {
-        padding: 36px 20px 34px;
+        padding: 34px 18px 32px;
+        border-radius: 26px;
       }
 
       .logo {
-        width: min(500px, 96vw);
+        width: 100%;
+        max-width: 420px;
       }
 
       .card h3 {
@@ -293,6 +305,14 @@
         position: static;
         display: inline-block;
         margin-bottom: 12px;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
       }
     }
   </style>
@@ -315,14 +335,14 @@
       </p>
 
       <p class="concept-note">
-        Deze website staat tijdelijk online als concept. Teksten, diensten, links en
-        functionaliteiten kunnen nog wijzigen.
+        Deze website staat tijdelijk online als concept. Teksten, diensten,
+        links en functionaliteiten kunnen nog wijzigen.
       </p>
 
       <div class="button-row">
         <a href="#diensten" class="btn">Bekijk conceptdiensten</a>
         <a href="calculator.html" class="btn secondary">Start rekenmachine</a>
-        <a href="brochure.pdf" class="btn light disabled" target="_blank">Brochure volgt</a>
+        <a href="brochure.pdf" class="btn light disabled">Brochure volgt</a>
       </div>
     </div>
   </header>
@@ -420,8 +440,7 @@
         <h2>Contact</h2>
 
         <div class="concept-warning">
-          Deze website is nog een concept. Contactgegevens en formulieren kunnen
-          nog wijzigen.
+          Deze website is nog een concept. Contactgegevens en formulieren kunnen nog wijzigen.
         </div>
 
         <p>

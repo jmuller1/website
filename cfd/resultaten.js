@@ -1,5 +1,6 @@
 // const API_URL = "http://127.0.0.1:8000";
-const API_URL = "http://178.104.112.10";
+// const API_URL = "http://178.104.112.10";
+const API_URL = "https://api.jmuller.be";
 const plotTypeEl = document.getElementById("plotType");
 const sliceIndexEl = document.getElementById("sliceIndex");
 const btnGenereerPlot = document.getElementById(

@@ -1,5 +1,6 @@
 // const API_URL = "http://127.0.0.1:8000";
-const API_URL = "http://178.104.112.10";
+// const API_URL = "http://178.104.112.10";
+const API_URL = "https://api.jmuller.be";
 
 const btnBereken = document.getElementById("btnBereken");
 const statusEl = document.getElementById("status");

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>CFD-resultaatvisualisatie</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .navigatie {
+      margin-bottom: 25px;
+    }
+
+    .navigatie a {
+      color: #005ea8;
+      text-decoration: none;
+    }
+
+    .invoerblok {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: end;
+
+      padding: 18px;
+      margin-bottom: 20px;
+
+      background: #f3f3f3;
+      border: 1px solid #cccccc;
+    }
+
+    .veld {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    select,
+    button {
+      min-width: 220px;
+      padding: 8px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled,
+    select:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    pre {
+      padding: 12px;
+      background: #f3f3f3;
+      white-space: pre-wrap;
+    }
+
+    #resultaatAfbeelding {
+      display: none;
+      width: 100%;
+      max-width: 1150px;
+      height: auto;
+      margin-top: 15px;
+      border: 1px solid #cccccc;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navigatie">
+    <a href="index.html">
+      ← Terug naar CFD-berekening
+    </a>
+  </div>
+
+  <h1>CFD-resultaatvisualisatie</h1>
+
+  <p>
+    Kies een plottype en, waar nodig, een doorsnede uit het grid.
+  </p>
+
+  <div class="invoerblok">
+    <div class="veld">
+      <label for="plotType">Plottype</label>
+
+      <select id="plotType">
+        <option value="">Plottypen laden...</option>
+      </select>
+    </div>
+
+    <div class="veld">
+      <label for="sliceIndex">Doorsnede</label>
+
+      <select id="sliceIndex" disabled>
+        <option value="">Niet van toepassing</option>
+      </select>
+    </div>
+
+    <button
+      id="btnGenereerPlot"
+      type="button"
+      disabled
+    >
+      Plot genereren
+    </button>
+  </div>
+
+  <h2>Status</h2>
+  <pre id="status">Plotinformatie wordt geladen...</pre>
+
+  <h2>Resultaat</h2>
+
+  <img
+    id="resultaatAfbeelding"
+    src=""
+    alt="CFD-resultaatplot"
+  >
+
+  <script src="resultaten.js"></script>
+</body>
+</html>

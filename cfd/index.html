@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>CFD-berekening</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .invoer {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    input {
+      width: 120px;
+      padding: 6px;
+    }
+
+    button,
+    .linkknop {
+      display: inline-block;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .linkknop {
+      color: white;
+      background: #005ea8;
+      text-decoration: none;
+      border: 1px solid #005ea8;
+    }
+
+    pre {
+      padding: 12px;
+      background: #f3f3f3;
+      white-space: pre-wrap;
+    }
+
+    #plotAfbeelding {
+      display: none;
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+      border: 1px solid #cccccc;
+    }
+
+    .resultaatnavigatie {
+      display: none;
+      margin: 0 0 25px 0;
+      padding: 15px;
+      background: #f3f3f3;
+      border: 1px solid #cccccc;
+    }
+
+    .resultaatnavigatie h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>CFD-berekening</h1>
+
+  <section
+    id="resultaatNavigatie"
+    class="resultaatnavigatie"
+  >
+    <h2>Resultaten visualiseren</h2>
+
+    <p>
+      Bekijk de luchtstroming, temperatuur, druk en andere
+      berekeningsresultaten per doorsnede.
+    </p>
+
+    <a
+      class="linkknop"
+      href="resultaten.html"
+    >
+      Naar resultaatvisualisatie
+    </a>
+  </section>
+
+  <div class="invoer">
+    <label for="debiet">Debiet:</label>
+
+    <input
+      id="debiet"
+      type="number"
+      value="200"
+      step="1"
+    >
+
+    <button id="btnBereken" type="button">
+      Bereken
+    </button>
+  </div>
+
+  <h2>Status</h2>
+  <pre id="status">Nog niet gestart</pre>
+
+  <h2>Resultaat</h2>
+  <pre id="resultaat">Nog geen resultaat</pre>
+
+  <h2>Convergentiecontrole</h2>
+
+  <img
+    id="plotAfbeelding"
+    src=""
+    alt="Convergentieplot"
+  >
+
+  <script src="app.js"></script>
+</body>
+</html>

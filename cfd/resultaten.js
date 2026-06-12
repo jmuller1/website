@@ -1,12 +1,15 @@
 // const API_URL = "http://127.0.0.1:8000";
-// const API_URL = "http://178.104.112.10";
 const API_URL = "https://api.jmuller.be";
+
 const plotTypeEl = document.getElementById("plotType");
 const sliceIndexEl = document.getElementById("sliceIndex");
+
 const btnGenereerPlot = document.getElementById(
   "btnGenereerPlot"
 );
+
 const statusEl = document.getElementById("status");
+
 const resultaatAfbeelding = document.getElementById(
   "resultaatAfbeelding"
 );
@@ -241,6 +244,8 @@ async function generatePlot() {
     btnGenereerPlot.disabled = false;
     plotTypeEl.disabled = false;
 
-    updateSliceOptions();
+    // De dropdown wordt niet opnieuw opgebouwd.
+    // Daardoor blijft de gekozen doorsnede geselecteerd.
+    sliceIndexEl.disabled = !sliceAxis;
   }
 }

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JMuller | Conceptwebsite</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --navy: #001b4d;
+      --navy-dark: #001230;
+      --blue: #004fc4;
+      --cyan: #0098b8;
+      --green: #20a85a;
+      --text: #102b46;
+      --muted: #60778d;
+      --white: #ffffff;
+      --line: rgba(0, 27, 77, 0.09);
+      --warning-bg: #fff7df;
+      --warning-text: #6b4b00;
+      --warning-border: #f2cf75;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(0, 79, 196, 0.10), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(32, 168, 90, 0.10), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, #f8fbfd 48%, #eef7f5 100%);
+    }
+
+    .concept-banner {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      width: 100%;
+      background: var(--warning-bg);
+      color: var(--warning-text);
+      border-bottom: 1px solid var(--warning-border);
+      text-align: center;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    header {
+      min-height: calc(100vh - 48px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 22px;
+      text-align: center;
+    }
+
+    .hero {
+      width: 100%;
+      max-width: 980px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      padding: 50px 34px 46px;
+      box-shadow: 0 24px 70px rgba(0, 27, 77, 0.11);
+    }
+
+    .concept-label {
+      display: inline-block;
+      margin-bottom: 22px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255, 247, 223, 0.95);
+      border: 1px solid var(--warning-border);
+      color: var(--warning-text);
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .logo {
+      display: block;
+      width: 100%;
+      max-width: 620px;
+      height: auto;
+      margin: 0 auto 28px;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 0 auto 18px;
+      font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .concept-note {
+      max-width: 720px;
+      margin: 0 auto 34px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(0, 27, 77, 0.04);
+      border: 1px dashed rgba(0, 27, 77, 0.18);
+      color: #4f657a;
+      line-height: 1.55;
+      font-size: 0.98rem;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 1rem 1.35rem;
+      border-radius: 999px;
+      font-weight: 700;
+      text-decoration: none;
+      color: white;
+      background: linear-gradient(135deg, var(--navy-dark), var(--blue));
+      box-shadow: 0 12px 26px rgba(0, 27, 77, 0.18);
+      transition: 0.22s ease;
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+    }
+
+    .btn.light {
+      color: var(--navy-dark);
+      background: white;
+      border: 1px solid rgba(0, 27, 77, 0.14);
+    }
+
+    .btn.disabled {
+      opacity: 0.58;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px rgba(0, 27, 77, 0.24);
+    }
+
+    section {
+      padding: 82px 24px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--navy-dark);
+      letter-spacing: -0.04em;
+    }
+
+    .section-intro {
+      max-width: 780px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1.08rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: 0 16px 40px rgba(0, 27, 77, 0.08);
+      position: relative;
+    }
+
+    .card::after {
+      content: "Concept";
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--warning-text);
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: 999px;
+      padding: 5px 8px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: var(--navy-dark);
+      font-size: 1.22rem;
+      padding-right: 82px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--navy-dark);
+      background: linear-gradient(135deg, rgba(0, 152, 184, 0.14), rgba(32, 168, 90, 0.14));
+    }
+
+    .contact {
+      text-align: center;
+      background:
+        radial-gradient(circle at 18% 20%, rgba(0, 152, 184, 0.24), transparent 32%),
+        radial-gradient(circle at 82% 70%, rgba(32, 168, 90, 0.22), transparent 34%),
+        linear-gradient(135deg, var(--navy-dark), #002b67);
+      color: white;
+      border-radius: 34px;
+      padding: 54px 28px;
+      box-shadow: 0 22px 60px rgba(0, 27, 77, 0.18);
+    }
+
+    .contact h2 {
+      color: white;
+    }
+
+    .contact p {
+      max-width: 660px;
+      margin: 0 auto 28px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.65;
+    }
+
+    .contact .concept-warning {
+      max-width: 660px;
+      margin: 0 auto 28px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px dashed rgba(255, 255, 255, 0.34);
+      border-radius: 18px;
+      padding: 15px 18px;
+      color: rgba(255, 255, 255, 0.86);
+      line-height: 1.55;
+      font-size: 0.98rem;
+    }
+
+    footer {
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 850px) {
+      header {
+        padding: 28px 14px;
+      }
+
+      section {
+        padding: 62px 18px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 34px 18px 32px;
+        border-radius: 26px;
+      }
+
+      .logo {
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .card h3 {
+        padding-right: 0;
+      }
+
+      .card::after {
+        position: static;
+        display: inline-block;
+        margin-bottom: 12px;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="concept-banner">
+    Conceptwebsite, inhoud, diensten en contactgegevens zijn nog in ontwikkeling.
+  </div>
+
+  <header>
+    <div class="hero">
+      <span class="concept-label">Conceptversie</span>
+
+      <img class="logo" src="logo.png" alt="JMuller logo" />
+
+      <p class="subtitle">
+        Modelleren en simuleren voor klimaat, energie en technische systemen.
+        Van complexe berekeningen naar heldere keuzes.
+      </p>
+
+      <p class="concept-note">
+        Deze website staat tijdelijk online als concept. Teksten, diensten,
+        links en functionaliteiten kunnen nog wijzigen.
+      </p>
+
+      <div class="button-row">
+        <a href="#diensten" class="btn">Bekijk conceptdiensten</a>
+        <a href="calculator.html" class="btn secondary">Start rekenmachine</a>
+        <a href="brochure.pdf" class="btn light disabled">Brochure volgt</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="over">
+    <div class="container">
+      <h2>Over JMuller</h2>
+      <p class="section-intro">
+        JMuller is een concept voor technische ondersteuning bij vraagstukken waar
+        klimaat, energie en systeemgedrag samenkomen. Met modellering, simulatie
+        en duidelijke analyse worden scenario’s inzichtelijk en technische keuzes
+        beter onderbouwd.
+      </p>
+    </div>
+  </section>
+
+  <section id="diensten">
+    <div class="container">
+      <h2>Wat ik mogelijk kan betekenen</h2>
+      <p class="section-intro">
+        Onderstaande onderdelen zijn bedoeld als conceptindeling. De exacte diensten
+        en omschrijvingen worden nog verder uitgewerkt.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <span class="tag">01</span>
+          <h3>Energiemodellen</h3>
+          <p>Inzicht in verbruik, opbrengst, pieken en scenario’s voor gebouwen, installaties of processen.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">02</span>
+          <h3>Klimaatsimulaties</h3>
+          <p>Analyse van temperatuur, comfort, warmtebalans en systeemgedrag onder verschillende omstandigheden.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">03</span>
+          <h3>Technische rekenmodellen</h3>
+          <p>Rekenhulpen en dashboards voor snelle vergelijking van varianten, keuzes en uitgangspunten.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">04</span>
+          <h3>Scenarioanalyse</h3>
+          <p>Doorrekenen van alternatieven, gevoeligheden en randvoorwaarden voor betere besluitvorming.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">05</span>
+          <h3>Procesoptimalisatie</h3>
+          <p>Structuur brengen in data, processen en technische keuzes zodat verbeteringen meetbaar worden.</p>
+        </div>
+
+        <div class="card">
+          <span class="tag">06</span>
+          <h3>Rapportage & advies</h3>
+          <p>Heldere conclusies, visuele onderbouwing en praktische aanbevelingen voor technische stakeholders.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="werkwijze">
+    <div class="container">
+      <h2>Concept werkwijze</h2>
+      <p class="section-intro">
+        De werkwijze hieronder is een eerste opzet en wordt nog verder aangescherpt
+        op basis van de definitieve dienstverlening.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>1. Vraag scherpstellen</h3>
+          <p>Wat moet het model of de simulatie aantonen, vergelijken of voorspellen?</p>
+        </div>
+
+        <div class="card">
+          <h3>2. Modelleren</h3>
+          <p>Opbouwen van een praktisch model met duidelijke aannames en invoerwaarden.</p>
+        </div>
+
+        <div class="card">
+          <h3>3. Inzicht leveren</h3>
+          <p>Resultaten vertalen naar conclusies, keuzes en concrete vervolgstappen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="contact">
+        <h2>Contact</h2>
+
+        <div class="concept-warning">
+          Deze website is nog een concept. Contactgegevens en formulieren kunnen nog wijzigen.
+        </div>
+
+        <p>
+          Later komt hier informatie om contact op te nemen over modellering,
+          simulatie of technische analyse rond klimaat en energie.
+        </p>
+
+        <div class="button-row">
+          <a href="mailto:info@jmuller.be" class="btn secondary">Mail JMuller</a>
+          <a href="#" class="btn light disabled">Contactformulier volgt</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 JMuller · Conceptwebsite · Modelleren & simuleren voor klimaat en energie
+  </footer>
+</body>
+</html>

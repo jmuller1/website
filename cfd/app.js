@@ -3,8 +3,17 @@ const API_URL = "https://api.jmuller.be";
 
 const CELGROOTTE = 0.125;
 
+const STORAGE_KEY =
+  "cfdBerekeningInstellingen";
+
+const LAST_CALCULATION_SIGNATURE_KEY =
+  "cfdLaatsteBerekeningSignature";
+
 const btnBereken =
   document.getElementById("btnBereken");
+
+const btnResetInstellingen =
+  document.getElementById("btnResetInstellingen");
 
 const statusEl =
   document.getElementById("status");
@@ -36,33 +45,65 @@ const lengteYEl =
 const lengteZEl =
   document.getElementById("lengteZ");
 
+const inlaatGridEl =
+  document.getElementById("inlaatGrid");
+
+const geselecteerdeInlatenEl =
+  document.getElementById("geselecteerdeInlaten");
+
+const debietEl =
+  document.getElementById("debiet");
+
+const geselecteerdeInlaten =
+  new Set();
+
 
 btnBereken.addEventListener(
   "click",
   runCalculation
 );
 
+btnResetInstellingen.addEventListener(
+  "click",
+  resetNaarStandaardInstellingen
+);
+
 gridXEl.addEventListener(
   "input",
-  updateWerkelijkeAfmetingen
+  handleInputGewijzigd
 );
 
 gridYEl.addEventListener(
   "input",
-  updateWerkelijkeAfmetingen
+  handleInputGewijzigd
 );
 
 gridZEl.addEventListener(
   "input",
-  updateWerkelijkeAfmetingen
+  handleInputGewijzigd
+);
+
+debietEl.addEventListener(
+  "input",
+  handleInputGewijzigd
 );
 
 
-updateWerkelijkeAfmetingen();
+laadInstellingen();
+handleGridInstellingenGewijzigd();
+updateResultaatvisualisatieBeschikbaarheid();
+
+
+function handleInputGewijzigd() {
+  handleGridInstellingenGewijzigd();
+  slaInstellingenOp();
+  updateResultaatvisualisatieBeschikbaarheid();
+}
 
 
 function leesGridwaarde(inputElement) {
-  const waarde = Number(inputElement.value);
+  const waarde =
+    Number(inputElement.value);
 
   if (
     !Number.isInteger(waarde) ||
@@ -76,9 +117,14 @@ function leesGridwaarde(inputElement) {
 
 
 function updateWerkelijkeAfmetingen() {
-  const gridX = leesGridwaarde(gridXEl);
-  const gridY = leesGridwaarde(gridYEl);
-  const gridZ = leesGridwaarde(gridZEl);
+  const gridX =
+    leesGridwaarde(gridXEl);
+
+  const gridY =
+    leesGridwaarde(gridYEl);
+
+  const gridZ =
+    leesGridwaarde(gridZEl);
 
   lengteXEl.textContent =
     (gridX * CELGROOTTE).toFixed(3);
@@ -91,10 +137,388 @@ function updateWerkelijkeAfmetingen() {
 }
 
 
+function handleGridInstellingenGewijzigd() {
+  updateWerkelijkeAfmetingen();
+  maakInlaatGrid();
+}
+
+
+function maakInlaatGrid() {
+  const gridX =
+    leesGridwaarde(gridXEl);
+
+  const gridY =
+    leesGridwaarde(gridYEl);
+
+  inlaatGridEl.innerHTML = "";
+
+  if (
+    gridX < 1 ||
+    gridY < 1
+  ) {
+    geselecteerdeInlaten.clear();
+    updateGeselecteerdeInlatenTekst();
+    return;
+  }
+
+  inlaatGridEl.style.gridTemplateColumns =
+    `repeat(${gridX}, 34px)`;
+
+  verwijderOngeldigeInlaten(
+    gridX,
+    gridY
+  );
+
+  for (
+    let y = gridY;
+    y >= 1;
+    y -= 1
+  ) {
+    for (
+      let x = 1;
+      x <= gridX;
+      x += 1
+    ) {
+      const knop =
+        document.createElement("button");
+
+      const key =
+        maakInlaatKey(x, y);
+
+      knop.type =
+        "button";
+
+      knop.className =
+        "gridCel";
+
+      knop.textContent =
+        `${x},${y}`;
+
+      knop.dataset.x =
+        x;
+
+      knop.dataset.y =
+        y;
+
+      if (geselecteerdeInlaten.has(key)) {
+        knop.classList.add(
+          "geselecteerd"
+        );
+      }
+
+      knop.addEventListener(
+        "click",
+        () => toggleInlaatCel(
+          x,
+          y,
+          knop
+        )
+      );
+
+      inlaatGridEl.appendChild(
+        knop
+      );
+    }
+  }
+
+  updateGeselecteerdeInlatenTekst();
+}
+
+
+function maakInlaatKey(x, y) {
+  return `${x},${y}`;
+}
+
+
+function toggleInlaatCel(x, y, knop) {
+  const key =
+    maakInlaatKey(x, y);
+
+  if (geselecteerdeInlaten.has(key)) {
+    geselecteerdeInlaten.delete(key);
+
+    knop.classList.remove(
+      "geselecteerd"
+    );
+
+  } else {
+    geselecteerdeInlaten.add(key);
+
+    knop.classList.add(
+      "geselecteerd"
+    );
+  }
+
+  updateGeselecteerdeInlatenTekst();
+  slaInstellingenOp();
+  updateResultaatvisualisatieBeschikbaarheid();
+}
+
+
+function verwijderOngeldigeInlaten(gridX, gridY) {
+  let isGewijzigd =
+    false;
+
+  for (
+    const key of Array.from(geselecteerdeInlaten)
+  ) {
+    const delen =
+      key.split(",");
+
+    const x =
+      Number(delen[0]);
+
+    const y =
+      Number(delen[1]);
+
+    if (
+      x < 1 ||
+      x > gridX ||
+      y < 1 ||
+      y > gridY
+    ) {
+      geselecteerdeInlaten.delete(key);
+
+      isGewijzigd =
+        true;
+    }
+  }
+
+  if (isGewijzigd) {
+    slaInstellingenOp();
+  }
+}
+
+
+function getGeselecteerdeInlaten() {
+  return Array.from(geselecteerdeInlaten)
+    .map((key) => {
+      const delen =
+        key.split(",");
+
+      return [
+        Number(delen[0]),
+        Number(delen[1])
+      ];
+    })
+    .sort((a, b) => {
+      if (a[1] !== b[1]) {
+        return b[1] - a[1];
+      }
+
+      return a[0] - b[0];
+    });
+}
+
+
+function updateGeselecteerdeInlatenTekst() {
+  const inlaten =
+    getGeselecteerdeInlaten();
+
+  if (inlaten.length === 0) {
+    geselecteerdeInlatenEl.textContent =
+      "geen";
+
+    return;
+  }
+
+  geselecteerdeInlatenEl.textContent =
+    inlaten
+      .map(([x, y]) => `[${x}, ${y}]`)
+      .join(", ");
+}
+
+
+function getInputSignature() {
+  const inputSnapshot = {
+    gridX: gridXEl.value,
+    gridY: gridYEl.value,
+    gridZ: gridZEl.value,
+    debiet: debietEl.value,
+    inlaten: getGeselecteerdeInlaten()
+  };
+
+  return JSON.stringify(inputSnapshot);
+}
+
+
+function updateResultaatvisualisatieBeschikbaarheid() {
+  const laatsteBerekeningSignature =
+    localStorage.getItem(
+      LAST_CALCULATION_SIGNATURE_KEY
+    );
+
+  const huidigeInputSignature =
+    getInputSignature();
+
+  if (
+    laatsteBerekeningSignature &&
+    laatsteBerekeningSignature === huidigeInputSignature
+  ) {
+    resultaatNavigatie.style.display =
+      "block";
+
+  } else {
+    resultaatNavigatie.style.display =
+      "none";
+  }
+}
+
+
+function markeerBerekeningAlsActueel() {
+  localStorage.setItem(
+    LAST_CALCULATION_SIGNATURE_KEY,
+    getInputSignature()
+  );
+
+  resultaatNavigatie.style.display =
+    "block";
+}
+
+
+function slaInstellingenOp() {
+  const instellingen = {
+    gridX: gridXEl.value,
+    gridY: gridYEl.value,
+    gridZ: gridZEl.value,
+    debiet: debietEl.value,
+    inlaten: getGeselecteerdeInlaten()
+  };
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(instellingen)
+  );
+}
+
+
+function laadInstellingen() {
+  const opgeslagenInstellingen =
+    localStorage.getItem(STORAGE_KEY);
+
+  if (!opgeslagenInstellingen) {
+    return;
+  }
+
+  try {
+    const instellingen =
+      JSON.parse(opgeslagenInstellingen);
+
+    if (instellingen.gridX !== undefined) {
+      gridXEl.value =
+        instellingen.gridX;
+    }
+
+    if (instellingen.gridY !== undefined) {
+      gridYEl.value =
+        instellingen.gridY;
+    }
+
+    if (instellingen.gridZ !== undefined) {
+      gridZEl.value =
+        instellingen.gridZ;
+    }
+
+    if (instellingen.debiet !== undefined) {
+      debietEl.value =
+        instellingen.debiet;
+    }
+
+    geselecteerdeInlaten.clear();
+
+    if (Array.isArray(instellingen.inlaten)) {
+      for (const inlaat of instellingen.inlaten) {
+        if (
+          Array.isArray(inlaat) &&
+          inlaat.length === 2
+        ) {
+          const x =
+            Number(inlaat[0]);
+
+          const y =
+            Number(inlaat[1]);
+
+          if (
+            Number.isInteger(x) &&
+            Number.isInteger(y)
+          ) {
+            geselecteerdeInlaten.add(
+              maakInlaatKey(x, y)
+            );
+          }
+        }
+      }
+    }
+
+  } catch (error) {
+    console.error(
+      "Opgeslagen instellingen konden niet worden geladen.",
+      error
+    );
+
+    localStorage.removeItem(
+      STORAGE_KEY
+    );
+
+    localStorage.removeItem(
+      LAST_CALCULATION_SIGNATURE_KEY
+    );
+  }
+}
+
+
+function resetNaarStandaardInstellingen() {
+  localStorage.removeItem(
+    STORAGE_KEY
+  );
+
+  localStorage.removeItem(
+    LAST_CALCULATION_SIGNATURE_KEY
+  );
+
+  gridXEl.value =
+    "20";
+
+  gridYEl.value =
+    "20";
+
+  gridZEl.value =
+    "20";
+
+  debietEl.value =
+    "200";
+
+  geselecteerdeInlaten.clear();
+
+  handleGridInstellingenGewijzigd();
+  updateGeselecteerdeInlatenTekst();
+
+  resultaatNavigatie.style.display =
+    "none";
+
+  plotAfbeelding.style.display =
+    "none";
+
+  plotAfbeelding.src =
+    "";
+
+  statusEl.textContent =
+    "Standaardinstellingen hersteld.";
+
+  resultaatEl.textContent =
+    "";
+}
+
+
 function getGridverhouding() {
-  const gridX = leesGridwaarde(gridXEl);
-  const gridY = leesGridwaarde(gridYEl);
-  const gridZ = leesGridwaarde(gridZEl);
+  const gridX =
+    leesGridwaarde(gridXEl);
+
+  const gridY =
+    leesGridwaarde(gridYEl);
+
+  const gridZ =
+    leesGridwaarde(gridZEl);
 
   if (
     gridX < 1 ||
@@ -115,22 +539,27 @@ function getGridverhouding() {
 
 
 async function runCalculation() {
-  btnBereken.disabled = true;
+  btnBereken.disabled =
+    true;
 
   statusEl.textContent =
     "Berekening gestart...";
 
-  resultaatEl.textContent = "";
+  resultaatEl.textContent =
+    "";
 
-  plotAfbeelding.style.display = "none";
-  plotAfbeelding.src = "";
+  plotAfbeelding.style.display =
+    "none";
 
-  resultaatNavigatie.style.display = "none";
+  plotAfbeelding.src =
+    "";
+
+  resultaatNavigatie.style.display =
+    "none";
 
   try {
-    const debiet = Number(
-      document.getElementById("debiet").value
-    );
+    const debiet =
+      Number(debietEl.value);
 
     if (!Number.isFinite(debiet)) {
       throw new Error(
@@ -141,6 +570,17 @@ async function runCalculation() {
     const gridverh =
       getGridverhouding();
 
+    const inlaten =
+      getGeselecteerdeInlaten();
+
+    if (inlaten.length === 0) {
+      throw new Error(
+        "Selecteer minimaal één inlaatcel in het bovenaanzicht."
+      );
+    }
+
+    slaInstellingenOp();
+
     const payload = {
       T_in: 0,
       T_init: 0,
@@ -150,8 +590,8 @@ async function runCalculation() {
 
       gridverh: gridverh,
 
-      boven_instroom: false,
-      zij_instroom: true,
+      boven_instroom: true,
+      zij_instroom: false,
       boven_instroom_zijwaards: false,
 
       boven_uitstroom_p: false,
@@ -160,13 +600,7 @@ async function runCalculation() {
 
       ngrid: 3,
 
-      inlaten: [
-        [8, 10],
-        [9, 10],
-        [10, 10],
-        [11, 10],
-        [12, 10]
-      ],
+      inlaten: inlaten,
 
       uitlaten: [
         [1, 1],
@@ -216,18 +650,19 @@ async function runCalculation() {
       impfac: 0
     };
 
-    const response = await fetch(
-      `${API_URL}/calculate`,
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        `${API_URL}/calculate`,
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type": "application/json"
+          },
 
-        body: JSON.stringify(payload)
-      }
-    );
+          body: JSON.stringify(payload)
+        }
+      );
 
     if (!response.ok) {
       const foutTekst =
@@ -254,6 +689,8 @@ async function runCalculation() {
       `${(gridverh[0] * CELGROOTTE).toFixed(3)} × ` +
       `${(gridverh[1] * CELGROOTTE).toFixed(3)} × ` +
       `${(gridverh[2] * CELGROOTTE).toFixed(3)} m\n` +
+      `Inlaten: ` +
+      `${JSON.stringify(inlaten)}\n` +
       `Temperatuur grid grootte: ` +
       `${data.temperature.length}\n` +
       `Airflow grid grootte: ` +
@@ -266,8 +703,7 @@ async function runCalculation() {
     plotAfbeelding.style.display =
       "block";
 
-    resultaatNavigatie.style.display =
-      "block";
+    markeerBerekeningAlsActueel();
 
   } catch (error) {
     statusEl.textContent =
@@ -285,6 +721,7 @@ async function runCalculation() {
     console.error(error);
 
   } finally {
-    btnBereken.disabled = false;
+    btnBereken.disabled =
+      false;
   }
 }

@@ -48,6 +48,8 @@
       padding: 10px 16px;
       font-size: 1rem;
       cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: 8px;
     }
 
     .afmetingen {
@@ -59,6 +61,44 @@
 
     .afmetingen p {
       margin: 4px 0;
+    }
+
+    #inlaatGridContainer {
+      overflow: auto;
+      max-width: 100%;
+      padding: 12px;
+      background: #f3f3f3;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+    }
+
+    #inlaatGrid {
+      display: grid;
+      gap: 2px;
+      width: max-content;
+    }
+
+    .gridCel {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      margin: 0;
+      font-size: 0.7rem;
+      border: 1px solid #999999;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    .gridCel.geselecteerd {
+      background: #4caf50;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .gridUitleg {
+      margin-top: 10px;
+      color: #555555;
+      font-size: 0.95rem;
     }
 
     #resultaatNavigatie {
@@ -77,6 +117,44 @@
       max-width: 100%;
       margin-top: 20px;
     }
+
+    @media (max-width: 700px) {
+      body {
+        margin: 20px auto;
+        padding: 0 12px;
+      }
+
+      fieldset {
+        padding: 14px;
+      }
+
+      .invoerregel {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      button {
+        width: 100%;
+        margin-right: 0;
+      }
+
+      #inlaatGridContainer {
+        padding: 8px;
+        max-height: 70vh;
+        overflow: auto;
+      }
+
+      .gridCel {
+        width: 28px;
+        height: 28px;
+        font-size: 0.58rem;
+      }
+    }
   </style>
 </head>
 
@@ -94,7 +172,7 @@
         id="gridX"
         min="1"
         step="1"
-        value="80"
+        value="20"
       >
 
       <span>Lengterichting</span>
@@ -151,6 +229,24 @@
   </fieldset>
 
   <fieldset>
+    <legend>Inlaat bovenaanzicht</legend>
+
+    <p>
+      Klik cellen aan voor de inlaatpositie. Bij boveninstroom worden deze
+      coördinaten gebruikt als <strong>[x, y]</strong>.
+    </p>
+
+    <div id="inlaatGridContainer">
+      <div id="inlaatGrid"></div>
+    </div>
+
+    <p class="gridUitleg">
+      Geselecteerde inlaten:
+      <span id="geselecteerdeInlaten">geen</span>
+    </p>
+  </fieldset>
+
+  <fieldset>
     <legend>Ventilatie</legend>
 
     <div class="invoerregel">
@@ -172,6 +268,13 @@
     id="btnBereken"
   >
     Bereken
+  </button>
+
+  <button
+    type="button"
+    id="btnResetInstellingen"
+  >
+    Standaardinstellingen herstellen
   </button>
 
   <div id="resultaatNavigatie">
@@ -197,4 +300,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-

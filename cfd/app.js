@@ -51,10 +51,16 @@ const inlaatGridEl =
 const geselecteerdeInlatenEl =
   document.getElementById("geselecteerdeInlaten");
 
+const geselecteerdeUitlatenEl =
+  document.getElementById("geselecteerdeUitlaten");
+
 const debietEl =
   document.getElementById("debiet");
 
 const geselecteerdeInlaten =
+  new Set();
+
+const geselecteerdeUitlaten =
   new Set();
 
 
@@ -87,6 +93,15 @@ debietEl.addEventListener(
   "input",
   handleInputGewijzigd
 );
+
+document
+  .querySelectorAll("input[name='selectieModus']")
+  .forEach((radioKnop) => {
+    radioKnop.addEventListener(
+      "change",
+      slaInstellingenOp
+    );
+  });
 
 
 laadInstellingen();
@@ -157,14 +172,18 @@ function maakInlaatGrid() {
     gridY < 1
   ) {
     geselecteerdeInlaten.clear();
+    geselecteerdeUitlaten.clear();
+
     updateGeselecteerdeInlatenTekst();
+    updateGeselecteerdeUitlatenTekst();
+
     return;
   }
 
   inlaatGridEl.style.gridTemplateColumns =
     `repeat(${gridX}, 34px)`;
 
-  verwijderOngeldigeInlaten(
+  verwijderOngeldigeSelecties(
     gridX,
     gridY
   );
@@ -183,7 +202,7 @@ function maakInlaatGrid() {
         document.createElement("button");
 
       const key =
-        maakInlaatKey(x, y);
+        maakCelKey(x, y);
 
       knop.type =
         "button";
@@ -200,15 +219,14 @@ function maakInlaatGrid() {
       knop.dataset.y =
         y;
 
-      if (geselecteerdeInlaten.has(key)) {
-        knop.classList.add(
-          "geselecteerd"
-        );
-      }
+      updateCelWeergave(
+        knop,
+        key
+      );
 
       knop.addEventListener(
         "click",
-        () => toggleInlaatCel(
+        () => toggleCel(
           x,
           y,
           knop
@@ -222,40 +240,89 @@ function maakInlaatGrid() {
   }
 
   updateGeselecteerdeInlatenTekst();
+  updateGeselecteerdeUitlatenTekst();
 }
 
 
-function maakInlaatKey(x, y) {
+function maakCelKey(x, y) {
   return `${x},${y}`;
 }
 
 
-function toggleInlaatCel(x, y, knop) {
-  const key =
-    maakInlaatKey(x, y);
-
-  if (geselecteerdeInlaten.has(key)) {
-    geselecteerdeInlaten.delete(key);
-
-    knop.classList.remove(
-      "geselecteerd"
+function getSelectieModus() {
+  const geselecteerdeModus =
+    document.querySelector(
+      "input[name='selectieModus']:checked"
     );
 
-  } else {
-    geselecteerdeInlaten.add(key);
-
-    knop.classList.add(
-      "geselecteerd"
-    );
+  if (!geselecteerdeModus) {
+    return "inlaat";
   }
 
+  return geselecteerdeModus.value;
+}
+
+
+function toggleCel(x, y, knop) {
+  const key =
+    maakCelKey(x, y);
+
+  const modus =
+    getSelectieModus();
+
+  if (modus === "inlaat") {
+    if (geselecteerdeInlaten.has(key)) {
+      geselecteerdeInlaten.delete(key);
+
+    } else {
+      geselecteerdeInlaten.add(key);
+      geselecteerdeUitlaten.delete(key);
+    }
+
+  } else if (modus === "uitlaat") {
+    if (geselecteerdeUitlaten.has(key)) {
+      geselecteerdeUitlaten.delete(key);
+
+    } else {
+      geselecteerdeUitlaten.add(key);
+      geselecteerdeInlaten.delete(key);
+    }
+  }
+
+  updateCelWeergave(
+    knop,
+    key
+  );
+
   updateGeselecteerdeInlatenTekst();
+  updateGeselecteerdeUitlatenTekst();
+
   slaInstellingenOp();
   updateResultaatvisualisatieBeschikbaarheid();
 }
 
 
-function verwijderOngeldigeInlaten(gridX, gridY) {
+function updateCelWeergave(knop, key) {
+  knop.classList.remove(
+    "inlaat",
+    "uitlaat"
+  );
+
+  if (geselecteerdeInlaten.has(key)) {
+    knop.classList.add(
+      "inlaat"
+    );
+  }
+
+  if (geselecteerdeUitlaten.has(key)) {
+    knop.classList.add(
+      "uitlaat"
+    );
+  }
+}
+
+
+function verwijderOngeldigeSelecties(gridX, gridY) {
   let isGewijzigd =
     false;
 
@@ -284,6 +351,31 @@ function verwijderOngeldigeInlaten(gridX, gridY) {
     }
   }
 
+  for (
+    const key of Array.from(geselecteerdeUitlaten)
+  ) {
+    const delen =
+      key.split(",");
+
+    const x =
+      Number(delen[0]);
+
+    const y =
+      Number(delen[1]);
+
+    if (
+      x < 1 ||
+      x > gridX ||
+      y < 1 ||
+      y > gridY
+    ) {
+      geselecteerdeUitlaten.delete(key);
+
+      isGewijzigd =
+        true;
+    }
+  }
+
   if (isGewijzigd) {
     slaInstellingenOp();
   }
@@ -292,6 +384,27 @@ function verwijderOngeldigeInlaten(gridX, gridY) {
 
 function getGeselecteerdeInlaten() {
   return Array.from(geselecteerdeInlaten)
+    .map((key) => {
+      const delen =
+        key.split(",");
+
+      return [
+        Number(delen[0]),
+        Number(delen[1])
+      ];
+    })
+    .sort((a, b) => {
+      if (a[1] !== b[1]) {
+        return b[1] - a[1];
+      }
+
+      return a[0] - b[0];
+    });
+}
+
+
+function getGeselecteerdeUitlaten() {
+  return Array.from(geselecteerdeUitlaten)
     .map((key) => {
       const delen =
         key.split(",");
@@ -329,13 +442,32 @@ function updateGeselecteerdeInlatenTekst() {
 }
 
 
+function updateGeselecteerdeUitlatenTekst() {
+  const uitlaten =
+    getGeselecteerdeUitlaten();
+
+  if (uitlaten.length === 0) {
+    geselecteerdeUitlatenEl.textContent =
+      "geen";
+
+    return;
+  }
+
+  geselecteerdeUitlatenEl.textContent =
+    uitlaten
+      .map(([x, y]) => `[${x}, ${y}]`)
+      .join(", ");
+}
+
+
 function getInputSignature() {
   const inputSnapshot = {
     gridX: gridXEl.value,
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
     debiet: debietEl.value,
-    inlaten: getGeselecteerdeInlaten()
+    inlaten: getGeselecteerdeInlaten(),
+    uitlaten: getGeselecteerdeUitlaten()
   };
 
   return JSON.stringify(inputSnapshot);
@@ -382,7 +514,9 @@ function slaInstellingenOp() {
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
     debiet: debietEl.value,
-    inlaten: getGeselecteerdeInlaten()
+    inlaten: getGeselecteerdeInlaten(),
+    uitlaten: getGeselecteerdeUitlaten(),
+    selectieModus: getSelectieModus()
   };
 
   localStorage.setItem(
@@ -424,7 +558,20 @@ function laadInstellingen() {
         instellingen.debiet;
     }
 
+    if (instellingen.selectieModus !== undefined) {
+      const radioKnop =
+        document.querySelector(
+          `input[name='selectieModus'][value='${instellingen.selectieModus}']`
+        );
+
+      if (radioKnop) {
+        radioKnop.checked =
+          true;
+      }
+    }
+
     geselecteerdeInlaten.clear();
+    geselecteerdeUitlaten.clear();
 
     if (Array.isArray(instellingen.inlaten)) {
       for (const inlaat of instellingen.inlaten) {
@@ -443,8 +590,35 @@ function laadInstellingen() {
             Number.isInteger(y)
           ) {
             geselecteerdeInlaten.add(
-              maakInlaatKey(x, y)
+              maakCelKey(x, y)
             );
+          }
+        }
+      }
+    }
+
+    if (Array.isArray(instellingen.uitlaten)) {
+      for (const uitlaat of instellingen.uitlaten) {
+        if (
+          Array.isArray(uitlaat) &&
+          uitlaat.length === 2
+        ) {
+          const x =
+            Number(uitlaat[0]);
+
+          const y =
+            Number(uitlaat[1]);
+
+          if (
+            Number.isInteger(x) &&
+            Number.isInteger(y)
+          ) {
+            const key =
+              maakCelKey(x, y);
+
+            if (!geselecteerdeInlaten.has(key)) {
+              geselecteerdeUitlaten.add(key);
+            }
           }
         }
       }
@@ -489,9 +663,22 @@ function resetNaarStandaardInstellingen() {
     "200";
 
   geselecteerdeInlaten.clear();
+  geselecteerdeUitlaten.clear();
+
+  const inlaatRadio =
+    document.querySelector(
+      "input[name='selectieModus'][value='inlaat']"
+    );
+
+  if (inlaatRadio) {
+    inlaatRadio.checked =
+      true;
+  }
 
   handleGridInstellingenGewijzigd();
+
   updateGeselecteerdeInlatenTekst();
+  updateGeselecteerdeUitlatenTekst();
 
   resultaatNavigatie.style.display =
     "none";
@@ -573,9 +760,18 @@ async function runCalculation() {
     const inlaten =
       getGeselecteerdeInlaten();
 
+    const uitlaten =
+      getGeselecteerdeUitlaten();
+
     if (inlaten.length === 0) {
       throw new Error(
         "Selecteer minimaal één inlaatcel in het bovenaanzicht."
+      );
+    }
+
+    if (uitlaten.length === 0) {
+      throw new Error(
+        "Selecteer minimaal één uitstroomcel in het bovenaanzicht."
       );
     }
 
@@ -595,21 +791,13 @@ async function runCalculation() {
       boven_instroom_zijwaards: false,
 
       boven_uitstroom_p: false,
-      boven_uitstroom_v: false,
-      zij_uitstroom: true,
+      boven_uitstroom_v: true,
+      zij_uitstroom: false,
 
       ngrid: 3,
 
       inlaten: inlaten,
-
-      uitlaten: [
-        [1, 1],
-        [2, 2],
-        [2, 3],
-        [2, 4],
-        [1, 4],
-        [1, 2]
-      ],
+      uitlaten: uitlaten,
 
       debiet: debiet,
       alpha: 0,
@@ -691,6 +879,8 @@ async function runCalculation() {
       `${(gridverh[2] * CELGROOTTE).toFixed(3)} m\n` +
       `Inlaten: ` +
       `${JSON.stringify(inlaten)}\n` +
+      `Uitstroompunten: ` +
+      `${JSON.stringify(uitlaten)}\n` +
       `Temperatuur grid grootte: ` +
       `${data.temperature.length}\n` +
       `Airflow grid grootte: ` +

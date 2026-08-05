@@ -63,6 +63,22 @@
       margin: 4px 0;
     }
 
+    .selectieModus {
+      margin-bottom: 12px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .selectieModus label {
+      cursor: pointer;
+    }
+
+    .selectieModus input {
+      width: auto;
+      margin-right: 6px;
+    }
+
     #inlaatGridContainer {
       overflow: auto;
       max-width: 100%;
@@ -89,10 +105,33 @@
       cursor: pointer;
     }
 
-    .gridCel.geselecteerd {
+    .gridCel.inlaat {
       background: #4caf50;
       color: #ffffff;
       font-weight: bold;
+    }
+
+    .gridCel.uitlaat {
+      background: #2196f3;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .kleurVakje {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 6px;
+      vertical-align: middle;
+      border: 1px solid #666666;
+    }
+
+    .kleurInlaat {
+      background: #4caf50;
+    }
+
+    .kleurUitlaat {
+      background: #2196f3;
     }
 
     .gridUitleg {
@@ -141,6 +180,15 @@
       button {
         width: 100%;
         margin-right: 0;
+      }
+
+      .selectieModus {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .selectieModus input {
+        width: auto;
       }
 
       #inlaatGridContainer {
@@ -213,7 +261,7 @@
 
       <p>
         Lengte X:
-        <span id="lengteX">10.000</span> m
+        <span id="lengteX">2.500</span> m
       </p>
 
       <p>
@@ -229,20 +277,49 @@
   </fieldset>
 
   <fieldset>
-    <legend>Inlaat bovenaanzicht</legend>
+    <legend>Bovenaanzicht inlaat en uitstroom</legend>
 
     <p>
-      Klik cellen aan voor de inlaatpositie. Bij boveninstroom worden deze
-      coördinaten gebruikt als <strong>[x, y]</strong>.
+      Kies eerst wat je wilt plaatsen en klik daarna cellen aan in het grid.
+      Bij boveninstroom en bovenuitstroom worden deze coördinaten gebruikt als
+      <strong>[x, y]</strong>.
     </p>
+
+    <div class="selectieModus">
+      <label>
+        <input
+          type="radio"
+          name="selectieModus"
+          value="inlaat"
+          checked
+        >
+        Inlaat selecteren
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="selectieModus"
+          value="uitlaat"
+        >
+        Uitstroom selecteren
+      </label>
+    </div>
 
     <div id="inlaatGridContainer">
       <div id="inlaatGrid"></div>
     </div>
 
     <p class="gridUitleg">
+      <span class="kleurVakje kleurInlaat"></span>
       Geselecteerde inlaten:
       <span id="geselecteerdeInlaten">geen</span>
+    </p>
+
+    <p class="gridUitleg">
+      <span class="kleurVakje kleurUitlaat"></span>
+      Geselecteerde uitstroompunten:
+      <span id="geselecteerdeUitlaten">geen</span>
     </p>
   </fieldset>
 

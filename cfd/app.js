@@ -2,6 +2,7 @@
 const API_URL = "https://api.jmuller.be";
 
 const CELGROOTTE = 0.125;
+// const CELGROOTTE = 0.6;
 
 const STORAGE_KEY =
   "cfdBerekeningInstellingen";
@@ -786,9 +787,9 @@ async function runCalculation() {
 
       gridverh: gridverh,
 
-      boven_instroom: true,
+      boven_instroom: false,
       zij_instroom: false,
-      boven_instroom_zijwaards: false,
+      boven_instroom_zijwaards: true,
 
       boven_uitstroom_p: false,
       boven_uitstroom_v: true,
@@ -801,7 +802,7 @@ async function runCalculation() {
 
       debiet: debiet,
       alpha: 0,
-      Rc: 12,
+      Rc: 6,
 
       pfac: 0.1,
       vfac: 0.4,

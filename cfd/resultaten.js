@@ -1,65 +1,142 @@
 // const API_URL = "http://127.0.0.1:8000";
 const API_URL = "https://api.jmuller.be";
 
-const plotTypeEl = document.getElementById("plotType");
-const sliceIndexEl = document.getElementById("sliceIndex");
+const plotTypeEl =
+  document.getElementById("plotType");
 
-const btnGenereerPlot = document.getElementById(
-  "btnGenereerPlot"
-);
+const sliceIndexEl =
+  document.getElementById("sliceIndex");
 
-const statusEl = document.getElementById("status");
+const sliceContainer =
+  document.getElementById("sliceContainer");
 
-const resultaatAfbeelding = document.getElementById(
-  "resultaatAfbeelding"
-);
+const sliceHelpEl =
+  document.getElementById("sliceHelp");
 
-let plotInformation = null;
+const btnGenereerPlot =
+  document.getElementById("btnGenereerPlot");
 
+const statusEl =
+  document.getElementById("status");
 
-plotTypeEl.addEventListener(
-  "change",
-  updateSliceOptions
-);
+const informatieEl =
+  document.getElementById("informatie");
+
+const plotAfbeelding =
+  document.getElementById("plotAfbeelding");
+
+const vectorScaleContainer =
+  document.getElementById("vectorScaleContainer");
+
+const vectorScaleEl =
+  document.getElementById("vectorScale");
+
+const vectorScaleValueEl =
+  document.getElementById("vectorScaleValue");
+
+let plotInformation =
+  null;
+
+let vectorScaleTimer =
+  null;
+
 
 btnGenereerPlot.addEventListener(
   "click",
   generatePlot
 );
 
+plotTypeEl.addEventListener(
+  "change",
+  () => {
+    updateSliceOptions();
+    updateVectorScaleVisibility();
+    generatePlot();
+  }
+);
+
+sliceIndexEl.addEventListener(
+  "change",
+  generatePlot
+);
+
+vectorScaleEl.addEventListener(
+  "input",
+  () => {
+    vectorScaleValueEl.textContent =
+      `${Number(vectorScaleEl.value).toFixed(1)}×`;
+
+    const plotType =
+      Number(plotTypeEl.value);
+
+    if (!is3DPlot(plotType)) {
+      return;
+    }
+
+    clearTimeout(vectorScaleTimer);
+
+    vectorScaleTimer =
+      setTimeout(
+        () => {
+          generatePlot();
+        },
+        400
+      );
+  }
+);
+
+
 loadPlotInformation();
 
 
+function is3DPlot(plotType) {
+  return plotType === 10 || plotType === 11;
+}
+
+
 async function loadPlotInformation() {
+  statusEl.textContent =
+    "Plotinformatie laden...";
+
+  informatieEl.textContent =
+    "";
+
+  plotAfbeelding.style.display =
+    "none";
+
   try {
-    const response = await fetch(
-      `${API_URL}/plot-info`
-    );
+    const response =
+      await fetch(
+        `${API_URL}/plot-info?t=${Date.now()}`
+      );
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const foutTekst =
+        await response.text();
 
       throw new Error(
-        `HTTP-fout ${response.status}: ${errorText}`
+        `HTTP-fout ${response.status}: ${foutTekst}`
       );
     }
 
-    plotInformation = await response.json();
+    plotInformation =
+      await response.json();
 
-    fillPlotTypeOptions();
+    vulPlotTypes();
+    updateSliceOptions();
+    updateVectorScaleVisibility();
+    updateInformatieTekst();
 
     statusEl.textContent =
-      `Resultaatdata geladen.\n` +
-      `Gridgrootte: ` +
-      `${plotInformation.ni} × ` +
-      `${plotInformation.nj} × ` +
-      `${plotInformation.nk}`;
+      "Plotinformatie geladen.";
 
-    btnGenereerPlot.disabled = false;
+    generatePlot();
 
   } catch (error) {
     statusEl.textContent =
-      "Plotinformatie kon niet worden geladen.\n" +
+      "Fout";
+
+    informatieEl.textContent =
       error.message;
 
     console.error(error);
@@ -67,185 +144,251 @@ async function loadPlotInformation() {
 }
 
 
-function fillPlotTypeOptions() {
-  plotTypeEl.innerHTML = "";
+function vulPlotTypes() {
+  plotTypeEl.innerHTML =
+    "";
 
   for (const plotType of plotInformation.plot_types) {
-    const option = document.createElement("option");
+    const option =
+      document.createElement("option");
 
-    option.value = plotType.number;
+    option.value =
+      plotType.number;
 
     option.textContent =
       `${plotType.number} - ${plotType.name}`;
 
-    option.dataset.sliceAxis =
-      plotType.slice_axis ?? "";
-
-    plotTypeEl.appendChild(option);
+    plotTypeEl.appendChild(
+      option
+    );
   }
+}
 
-  updateSliceOptions();
+
+function getSelectedPlotTypeData() {
+  const plotType =
+    Number(plotTypeEl.value);
+
+  return plotInformation.plot_types.find(
+    (item) => item.number === plotType
+  );
 }
 
 
 function updateSliceOptions() {
-  const selectedOption =
-    plotTypeEl.options[plotTypeEl.selectedIndex];
+  if (!plotInformation) {
+    return;
+  }
 
-  if (!selectedOption) {
-    sliceIndexEl.disabled = true;
+  const plotTypeData =
+    getSelectedPlotTypeData();
 
-    sliceIndexEl.innerHTML =
-      '<option value="">Niet van toepassing</option>';
+  sliceIndexEl.innerHTML =
+    "";
+
+  if (
+    !plotTypeData ||
+    plotTypeData.slice_axis === null
+  ) {
+    sliceContainer.style.display =
+      "none";
 
     return;
   }
 
-  const sliceAxis =
-    selectedOption.dataset.sliceAxis;
+  let maximum =
+    0;
 
-  sliceIndexEl.innerHTML = "";
+  let label =
+    "";
 
-  if (!sliceAxis) {
-    sliceIndexEl.disabled = true;
+  let hulp =
+    "";
 
-    const option =
-      document.createElement("option");
+  if (plotTypeData.slice_axis === "x") {
+    maximum =
+      plotInformation.ni - 2;
 
-    option.value = "";
-    option.textContent = "Niet van toepassing";
+    label =
+      "x-cel";
 
-    sliceIndexEl.appendChild(option);
+    hulp =
+      "Zijaanzicht y-z bij een gekozen x-positie.";
 
-    return;
+  } else if (plotTypeData.slice_axis === "y") {
+    maximum =
+      plotInformation.nj - 2;
+
+    label =
+      "y-cel";
+
+    hulp =
+      "Vooraanzicht x-z bij een gekozen y-positie.";
+
+  } else if (plotTypeData.slice_axis === "z") {
+    maximum =
+      plotInformation.nk - 2;
+
+    label =
+      "z-cel";
+
+    hulp =
+      "Bovenaanzicht x-y bij een gekozen z-positie.";
   }
-
-  sliceIndexEl.disabled = false;
-
-  let maximum;
-
-  if (sliceAxis === "x") {
-    maximum = plotInformation.ni - 2;
-
-  } else if (sliceAxis === "y") {
-    maximum = plotInformation.nj - 2;
-
-  } else if (sliceAxis === "z") {
-    maximum = plotInformation.nk - 2;
-
-  } else {
-    throw new Error(
-      `Onbekende doorsnede-as: ${sliceAxis}`
-    );
-  }
-
-  const minimum = 1;
 
   for (
-    let sliceIndex = minimum;
-    sliceIndex <= maximum;
-    sliceIndex += 1
+    let index = 1;
+    index <= maximum;
+    index += 1
   ) {
     const option =
       document.createElement("option");
 
-    option.value = sliceIndex;
+    option.value =
+      index;
 
     option.textContent =
-      `${sliceAxis} = ${sliceIndex}`;
+      `${label} ${index}`;
 
-    sliceIndexEl.appendChild(option);
+    sliceIndexEl.appendChild(
+      option
+    );
   }
 
-  const middleIndex = Math.floor(
-    sliceIndexEl.options.length / 2
-  );
+  const midden =
+    Math.max(
+      1,
+      Math.round(maximum / 2)
+    );
 
-  sliceIndexEl.selectedIndex = middleIndex;
+  sliceIndexEl.value =
+    String(midden);
+
+  sliceHelpEl.textContent =
+    hulp;
+
+  sliceContainer.style.display =
+    "grid";
+}
+
+
+function updateVectorScaleVisibility() {
+  const plotType =
+    Number(plotTypeEl.value);
+
+  if (is3DPlot(plotType)) {
+    vectorScaleContainer.style.display =
+      "block";
+
+  } else {
+    vectorScaleContainer.style.display =
+      "none";
+  }
+}
+
+
+function updateInformatieTekst() {
+  informatieEl.textContent =
+    `Grid inclusief randcellen: ` +
+    `${plotInformation.ni} × ` +
+    `${plotInformation.nj} × ` +
+    `${plotInformation.nk}\n` +
+    `Fysieke afmetingen: ` +
+    `${plotInformation.length_x.toFixed(3)} × ` +
+    `${plotInformation.length_y.toFixed(3)} × ` +
+    `${plotInformation.length_z.toFixed(3)} m\n` +
+    `Celgrootte: ` +
+    `${plotInformation.dx.toFixed(3)} m`;
 }
 
 
 async function generatePlot() {
-  const selectedOption =
-    plotTypeEl.options[plotTypeEl.selectedIndex];
-
-  if (!selectedOption) {
-    statusEl.textContent =
-      "Kies eerst een plottype.";
-
+  if (!plotInformation) {
     return;
   }
 
   const plotType =
-    Number(selectedOption.value);
+    Number(plotTypeEl.value);
 
-  const sliceAxis =
-    selectedOption.dataset.sliceAxis;
+  const plotTypeData =
+    getSelectedPlotTypeData();
 
-  let sliceIndex = null;
+  if (!plotTypeData) {
+    statusEl.textContent =
+      "Geen geldig plottype gekozen.";
 
-  if (sliceAxis) {
-    sliceIndex =
-      Number(sliceIndexEl.value);
+    return;
   }
 
-  btnGenereerPlot.disabled = true;
-  plotTypeEl.disabled = true;
-  sliceIndexEl.disabled = true;
-
-  resultaatAfbeelding.style.display = "none";
+  btnGenereerPlot.disabled =
+    true;
 
   statusEl.textContent =
-    "Resultaatplot wordt gegenereerd...";
-
-  const payload = {
-    plot_type: plotType,
-    slice_index: sliceIndex
-  };
+    "Plot genereren...";
 
   try {
-    const response = await fetch(
-      `${API_URL}/generate-result-plot`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      }
-    );
+    let plotUrl =
+      `${API_URL}/plot?plot_type=${plotType}`;
+
+    if (plotTypeData.slice_axis !== null) {
+      plotUrl +=
+        `&slice_index=${Number(sliceIndexEl.value)}`;
+    }
+
+    if (is3DPlot(plotType)) {
+      plotUrl +=
+        `&vector_scale=${Number(vectorScaleEl.value)}`;
+    }
+
+    plotUrl +=
+      `&t=${Date.now()}`;
+
+    const response =
+      await fetch(plotUrl);
 
     if (!response.ok) {
-      const errorText = await response.text();
+      const foutTekst =
+        await response.text();
 
       throw new Error(
-        `HTTP-fout ${response.status}: ${errorText}`
+        `HTTP-fout ${response.status}: ${foutTekst}`
       );
     }
 
-    const data = await response.json();
+    const blob =
+      await response.blob();
 
-    resultaatAfbeelding.src =
-      `${API_URL}${data.plot_url}?t=${Date.now()}`;
+    const imageUrl =
+      URL.createObjectURL(blob);
 
-    resultaatAfbeelding.style.display = "block";
+    plotAfbeelding.onload =
+      () => {
+        URL.revokeObjectURL(imageUrl);
+      };
+
+    plotAfbeelding.src =
+      imageUrl;
+
+    plotAfbeelding.style.display =
+      "block";
 
     statusEl.textContent =
-      "Resultaatplot is gereed.";
+      "Plot klaar.";
 
   } catch (error) {
     statusEl.textContent =
-      "De resultaatplot kon niet worden gemaakt.\n" +
+      "Fout";
+
+    informatieEl.textContent =
       error.message;
+
+    plotAfbeelding.style.display =
+      "none";
 
     console.error(error);
 
   } finally {
-    btnGenereerPlot.disabled = false;
-    plotTypeEl.disabled = false;
-
-    // De dropdown wordt niet opnieuw opgebouwd.
-    // Daardoor blijft de gekozen doorsnede geselecteerd.
-    sliceIndexEl.disabled = !sliceAxis;
+    btnGenereerPlot.disabled =
+      false;
   }
 }

@@ -12,125 +12,192 @@
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 1200px;
-      margin: 30px auto;
+      max-width: 1100px;
+      margin: 40px auto;
       padding: 0 20px;
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
     }
 
-    .navigatie {
-      margin-bottom: 25px;
+    fieldset {
+      margin-bottom: 24px;
+      padding: 20px;
+      border: 1px solid #999;
+      border-radius: 6px;
     }
 
-    .navigatie a {
-      color: #005ea8;
-      text-decoration: none;
-    }
-
-    .invoerblok {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      align-items: end;
-
-      padding: 18px;
-      margin-bottom: 20px;
-
-      background: #f3f3f3;
-      border: 1px solid #cccccc;
-    }
-
-    .veld {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    label {
+    legend {
+      padding: 0 8px;
       font-weight: bold;
     }
 
+    .invoerregel {
+      display: grid;
+      grid-template-columns: 180px 220px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
     select,
-    button {
-      min-width: 220px;
+    input {
       padding: 8px;
+      font-size: 1rem;
     }
 
     button {
+      padding: 10px 16px;
+      font-size: 1rem;
       cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: 8px;
     }
 
-    button:disabled,
-    select:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    pre {
-      padding: 12px;
-      background: #f3f3f3;
+    #status,
+    #informatie {
       white-space: pre-wrap;
+      margin-top: 16px;
     }
 
-    #resultaatAfbeelding {
+    #plotAfbeelding {
       display: none;
-      width: 100%;
-      max-width: 1150px;
-      height: auto;
-      margin-top: 15px;
+      max-width: 100%;
+      margin-top: 20px;
       border: 1px solid #cccccc;
+      border-radius: 6px;
+    }
+
+    #sliceContainer {
+      display: none;
+    }
+
+    #vectorScaleContainer {
+      display: none;
+    }
+
+    .sliderRij {
+      display: grid;
+      grid-template-columns: 180px 1fr 80px;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .helpTekst {
+      color: #555555;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        margin: 20px auto;
+        padding: 0 12px;
+      }
+
+      fieldset {
+        padding: 14px;
+      }
+
+      .invoerregel,
+      .sliderRij {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      select,
+      input,
+      button {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      button {
+        margin-right: 0;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="navigatie">
-    <a href="index.html">
-      ← Terug naar CFD-berekening
-    </a>
-  </div>
-
   <h1>CFD-resultaatvisualisatie</h1>
 
-  <p>
-    Kies een plottype en, waar nodig, een doorsnede uit het grid.
-  </p>
+  <button
+    type="button"
+    onclick="window.location.href='index.html'"
+  >
+    Terug naar invoer
+  </button>
 
-  <div class="invoerblok">
-    <div class="veld">
-      <label for="plotType">Plottype</label>
+  <fieldset>
+    <legend>Plotinstellingen</legend>
 
-      <select id="plotType">
-        <option value="">Plottypen laden...</option>
-      </select>
+    <div class="invoerregel">
+      <label for="plotType">Grafiek:</label>
+
+      <select id="plotType"></select>
+
+      <span>
+        Kies welke resultaatgrafiek je wilt tonen.
+      </span>
     </div>
 
-    <div class="veld">
-      <label for="sliceIndex">Doorsnede</label>
+    <div
+      id="sliceContainer"
+      class="invoerregel"
+    >
+      <label for="sliceIndex">Doorsnede:</label>
 
-      <select id="sliceIndex" disabled>
-        <option value="">Niet van toepassing</option>
-      </select>
+      <select id="sliceIndex"></select>
+
+      <span id="sliceHelp">
+        Kies de doorsnede.
+      </span>
+    </div>
+
+    <div id="vectorScaleContainer">
+      <div class="sliderRij">
+        <label for="vectorScale">
+          Pijlschaal 3D:
+        </label>
+
+        <input
+          type="range"
+          id="vectorScale"
+          min="0.2"
+          max="5.0"
+          step="0.1"
+          value="1.0"
+        >
+
+        <span id="vectorScaleValue">
+          1.0×
+        </span>
+      </div>
+
+      <p class="helpTekst">
+        Hiermee pas je alleen de lengte van de pijlen in de 3D-plot aan.
+        De CFD-berekening zelf verandert niet.
+      </p>
     </div>
 
     <button
-      id="btnGenereerPlot"
       type="button"
-      disabled
+      id="btnGenereerPlot"
     >
-      Plot genereren
+      Genereer plot
     </button>
-  </div>
+  </fieldset>
 
-  <h2>Status</h2>
-  <pre id="status">Plotinformatie wordt geladen...</pre>
-
-  <h2>Resultaat</h2>
+  <div id="status"></div>
+  <div id="informatie"></div>
 
   <img
-    id="resultaatAfbeelding"
-    src=""
-    alt="CFD-resultaatplot"
+    id="plotAfbeelding"
+    alt="Resultaatplot"
   >
 
   <script src="resultaten.js"></script>

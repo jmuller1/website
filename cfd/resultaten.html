@@ -31,9 +31,17 @@
       font-weight: bold;
     }
 
+    .instellingenLayout {
+      display: block;
+    }
+
+    .instellingenKolom {
+      min-width: 0;
+    }
+
     .invoerregel {
       display: grid;
-      grid-template-columns: 180px 220px 1fr;
+      grid-template-columns: 180px minmax(360px, 440px) 1fr;
       gap: 12px;
       align-items: center;
       margin-bottom: 12px;
@@ -59,12 +67,54 @@
       margin-top: 16px;
     }
 
+    .plotKaart {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px solid #999;
+      border-radius: 6px;
+      background: #ffffff;
+    }
+
+    .plotKaart h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.15rem;
+    }
+
+    .plotKaart:has(#plotAfbeelding[style*="block"]) {
+      display: block;
+    }
+
     #plotAfbeelding {
       display: none;
       max-width: 100%;
-      margin-top: 20px;
+      margin-top: 16px;
       border: 1px solid #cccccc;
       border-radius: 6px;
+    }
+
+    #sliceOverviewContainer {
+      display: none;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #cccccc;
+    }
+
+    #sliceOverviewContainer h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+
+    #sliceOverviewAfbeelding {
+      display: none;
+      max-width: 360px;
+      width: 100%;
+      margin-top: 8px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      background: #ffffff;
     }
 
     #sliceContainer {
@@ -75,12 +125,22 @@
       display: none;
     }
 
+    #speedThresholdContainer {
+      display: none;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      padding: 14px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      background: #f8f8f8;
+    }
+
     .sliderRij {
       display: grid;
-      grid-template-columns: 180px 1fr 80px;
+      grid-template-columns: 180px 1fr 90px;
       gap: 12px;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
 
     input[type="range"] {
@@ -92,13 +152,14 @@
       font-size: 0.95rem;
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 800px) {
       body {
         margin: 20px auto;
         padding: 0 12px;
       }
 
-      fieldset {
+      fieldset,
+      .plotKaart {
         padding: 14px;
       }
 
@@ -106,6 +167,10 @@
       .sliderRij {
         grid-template-columns: 1fr;
         gap: 6px;
+      }
+
+      #sliceOverviewAfbeelding {
+        max-width: 100%;
       }
 
       select,
@@ -133,72 +198,117 @@
   </button>
 
   <fieldset>
-    <legend>Plotinstellingen</legend>
+    <legend>Doorsnede en gridinstellingen</legend>
 
-    <div class="invoerregel">
-      <label for="plotType">Grafiek:</label>
+    <div class="instellingenLayout">
+      <div class="instellingenKolom">
+        <div class="invoerregel">
+          <label for="plotType">Grafiek:</label>
 
-      <select id="plotType"></select>
+          <select id="plotType"></select>
 
-      <span>
-        Kies welke resultaatgrafiek je wilt tonen.
-      </span>
-    </div>
+          <span>
+            Kies welke resultaatgrafiek je wilt tonen.
+          </span>
+        </div>
 
-    <div
-      id="sliceContainer"
-      class="invoerregel"
-    >
-      <label for="sliceIndex">Doorsnede:</label>
-
-      <select id="sliceIndex"></select>
-
-      <span id="sliceHelp">
-        Kies de doorsnede.
-      </span>
-    </div>
-
-    <div id="vectorScaleContainer">
-      <div class="sliderRij">
-        <label for="vectorScale">
-          Pijlschaal 3D:
-        </label>
-
-        <input
-          type="range"
-          id="vectorScale"
-          min="0.2"
-          max="5.0"
-          step="0.1"
-          value="1.0"
+        <div
+          id="sliceContainer"
+          class="invoerregel"
         >
+          <label for="sliceIndex">Doorsnede:</label>
 
-        <span id="vectorScaleValue">
-          1.0×
-        </span>
+          <select id="sliceIndex"></select>
+
+          <span id="sliceHelp">
+            Kies de doorsnede.
+          </span>
+        </div>
+
+        <div id="vectorScaleContainer">
+          <div class="sliderRij">
+            <label for="vectorScale">
+              Pijlschaal 3D:
+            </label>
+
+            <input
+              type="range"
+              id="vectorScale"
+              min="0.2"
+              max="5.0"
+              step="0.1"
+              value="1.0"
+            >
+
+            <span id="vectorScaleValue">
+              1.0×
+            </span>
+          </div>
+
+          <p class="helpTekst">
+            Hiermee pas je alleen de lengte van de pijlen in de 3D-plot aan.
+            De CFD-berekening zelf verandert niet.
+          </p>
+        </div>
+
       </div>
 
-      <p class="helpTekst">
-        Hiermee pas je alleen de lengte van de pijlen in de 3D-plot aan.
-        De CFD-berekening zelf verandert niet.
-      </p>
-    </div>
+      <div id="sliceOverviewContainer">
+        <h2>Doorsnede-overzicht</h2>
 
-    <button
-      type="button"
-      id="btnGenereerPlot"
-    >
-      Genereer plot
-    </button>
+        <p class="helpTekst">
+          Compact 3D-overzicht met dezelfde oriëntatie als plot 10.
+          Het gekozen doorsnedevlak plus de inlaat- en uitstroompunten worden ingetekend.
+        </p>
+
+        <img
+          id="sliceOverviewAfbeelding"
+          alt="3D-overzicht van de gekozen doorsnede"
+        >
+      </div>
+    </div>
   </fieldset>
 
   <div id="status"></div>
   <div id="informatie"></div>
 
-  <img
-    id="plotAfbeelding"
-    alt="Resultaatplot"
+  <section
+    id="plotKaart"
+    class="plotKaart"
   >
+    <h2>Doorsnedeplot</h2>
+
+    <div id="speedThresholdContainer">
+      <div class="sliderRij">
+        <label for="speedThreshold">
+          Snelheidsdrempel rood:
+        </label>
+
+        <input
+          type="range"
+          id="speedThreshold"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.3"
+        >
+
+        <span id="speedThresholdValue">
+          0.30 m/s
+        </span>
+      </div>
+
+      <p class="helpTekst">
+        Deze instelling hoort bij de doorsnedeplot hieronder:
+        zones met een snelheid boven deze waarde worden rood gemarkeerd.
+      </p>
+    </div>
+
+    <img
+      id="plotAfbeelding"
+      alt="Resultaatplot"
+    >
+  </section>
 
   <script src="resultaten.js"></script>
 </body>

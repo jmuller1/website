@@ -37,6 +37,9 @@ const gridYEl =
 const gridZEl =
   document.getElementById("gridZ");
 
+const nitEl =
+  document.getElementById("nit");
+
 const lengteXEl =
   document.getElementById("lengteX");
 
@@ -86,6 +89,11 @@ gridYEl.addEventListener(
 );
 
 gridZEl.addEventListener(
+  "input",
+  handleInputGewijzigd
+);
+
+nitEl.addEventListener(
   "input",
   handleInputGewijzigd
 );
@@ -466,6 +474,7 @@ function getInputSignature() {
     gridX: gridXEl.value,
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
+    nit: nitEl.value,
     debiet: debietEl.value,
     inlaten: getGeselecteerdeInlaten(),
     uitlaten: getGeselecteerdeUitlaten()
@@ -514,6 +523,7 @@ function slaInstellingenOp() {
     gridX: gridXEl.value,
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
+    nit: nitEl.value,
     debiet: debietEl.value,
     inlaten: getGeselecteerdeInlaten(),
     uitlaten: getGeselecteerdeUitlaten(),
@@ -552,6 +562,11 @@ function laadInstellingen() {
     if (instellingen.gridZ !== undefined) {
       gridZEl.value =
         instellingen.gridZ;
+    }
+
+    if (instellingen.nit !== undefined) {
+      nitEl.value =
+        instellingen.nit;
     }
 
     if (instellingen.debiet !== undefined) {
@@ -660,6 +675,9 @@ function resetNaarStandaardInstellingen() {
   gridZEl.value =
     "20";
 
+  nitEl.value =
+    "2000";
+
   debietEl.value =
     "200";
 
@@ -726,6 +744,23 @@ function getGridverhouding() {
 }
 
 
+function getAantalRekenstappen() {
+  const nit =
+    Number(nitEl.value);
+
+  if (
+    !Number.isInteger(nit) ||
+    nit < 1
+  ) {
+    throw new Error(
+      "Het aantal rekenstappen moet een geheel getal van minimaal 1 zijn."
+    );
+  }
+
+  return nit;
+}
+
+
 async function runCalculation() {
   btnBereken.disabled =
     true;
@@ -757,6 +792,9 @@ async function runCalculation() {
 
     const gridverh =
       getGridverhouding();
+
+    const nit =
+      getAantalRekenstappen();
 
     const inlaten =
       getGeselecteerdeInlaten();
@@ -796,6 +834,7 @@ async function runCalculation() {
       zij_uitstroom: false,
 
       ngrid: 3,
+      nit: nit,
 
       inlaten: inlaten,
       uitlaten: uitlaten,
@@ -874,6 +913,8 @@ async function runCalculation() {
       `${gridverh[0]} × ` +
       `${gridverh[1]} × ` +
       `${gridverh[2]}\n` +
+      `Rekenstappen: ` +
+      `${nit}\n` +
       `Afmetingen: ` +
       `${(gridverh[0] * CELGROOTTE).toFixed(3)} × ` +
       `${(gridverh[1] * CELGROOTTE).toFixed(3)} × ` +

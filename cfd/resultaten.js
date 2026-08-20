@@ -25,6 +25,12 @@ const informatieEl =
 const plotAfbeelding =
   document.getElementById("plotAfbeelding");
 
+const sliceOverviewContainer =
+  document.getElementById("sliceOverviewContainer");
+
+const sliceOverviewAfbeelding =
+  document.getElementById("sliceOverviewAfbeelding");
+
 const vectorScaleContainer =
   document.getElementById("vectorScaleContainer");
 
@@ -34,23 +40,38 @@ const vectorScaleEl =
 const vectorScaleValueEl =
   document.getElementById("vectorScaleValue");
 
+const speedThresholdContainer =
+  document.getElementById("speedThresholdContainer");
+
+const speedThresholdEl =
+  document.getElementById("speedThreshold");
+
+const speedThresholdValueEl =
+  document.getElementById("speedThresholdValue");
+
 let plotInformation =
   null;
 
 let vectorScaleTimer =
   null;
 
+let speedThresholdTimer =
+  null;
 
-btnGenereerPlot.addEventListener(
-  "click",
-  generatePlot
-);
+
+if (btnGenereerPlot) {
+  btnGenereerPlot.addEventListener(
+    "click",
+    generatePlot
+  );
+}
 
 plotTypeEl.addEventListener(
   "change",
   () => {
     updateSliceOptions();
     updateVectorScaleVisibility();
+    updateSpeedThresholdVisibility();
     generatePlot();
   }
 );
@@ -85,12 +106,62 @@ vectorScaleEl.addEventListener(
   }
 );
 
+speedThresholdEl.addEventListener(
+  "input",
+  () => {
+    speedThresholdValueEl.textContent =
+      `${Number(speedThresholdEl.value).toFixed(2)} m/s`;
+
+    const plotType =
+      Number(plotTypeEl.value);
+
+    if (!isSpeedPlot(plotType)) {
+      return;
+    }
+
+    clearTimeout(speedThresholdTimer);
+
+    speedThresholdTimer =
+      setTimeout(
+        () => {
+          generatePlot();
+        },
+        400
+      );
+  }
+);
+
 
 loadPlotInformation();
 
 
 function is3DPlot(plotType) {
   return plotType === 10 || plotType === 11;
+}
+
+
+function isSpeedPlot(plotType) {
+  return plotType === 3 || plotType === 4 || plotType === 12;
+}
+
+
+function isSlicePlot(plotTypeData) {
+  return (
+    plotTypeData &&
+    plotTypeData.slice_axis !== null
+  );
+}
+
+
+function verbergSliceOverview() {
+  sliceOverviewContainer.style.display =
+    "none";
+
+  sliceOverviewAfbeelding.style.display =
+    "none";
+
+  sliceOverviewAfbeelding.src =
+    "";
 }
 
 
@@ -103,6 +174,8 @@ async function loadPlotInformation() {
 
   plotAfbeelding.style.display =
     "none";
+
+  verbergSliceOverview();
 
   try {
     const response =
@@ -125,6 +198,7 @@ async function loadPlotInformation() {
     vulPlotTypes();
     updateSliceOptions();
     updateVectorScaleVisibility();
+    updateSpeedThresholdVisibility();
     updateInformatieTekst();
 
     statusEl.textContent =
@@ -192,6 +266,8 @@ function updateSliceOptions() {
   ) {
     sliceContainer.style.display =
       "none";
+
+    verbergSliceOverview();
 
     return;
   }
@@ -287,6 +363,21 @@ function updateVectorScaleVisibility() {
 }
 
 
+function updateSpeedThresholdVisibility() {
+  const plotType =
+    Number(plotTypeEl.value);
+
+  if (isSpeedPlot(plotType)) {
+    speedThresholdContainer.style.display =
+      "block";
+
+  } else {
+    speedThresholdContainer.style.display =
+      "none";
+  }
+}
+
+
 function updateInformatieTekst() {
   informatieEl.textContent =
     `Grid inclusief randcellen: ` +
@@ -299,6 +390,57 @@ function updateInformatieTekst() {
     `${plotInformation.length_z.toFixed(3)} m\n` +
     `Celgrootte: ` +
     `${plotInformation.dx.toFixed(3)} m`;
+}
+
+
+async function generateSliceOverview(
+  plotType,
+  plotTypeData
+) {
+  if (!isSlicePlot(plotTypeData)) {
+    verbergSliceOverview();
+    return;
+  }
+
+  try {
+    const overviewUrl =
+      `${API_URL}/slice-overview?plot_type=${plotType}` +
+      `&slice_index=${Number(sliceIndexEl.value)}` +
+      `&t=${Date.now()}`;
+
+    const response =
+      await fetch(overviewUrl);
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP-fout ${response.status} bij doorsnede-overzicht.`
+      );
+    }
+
+    const blob =
+      await response.blob();
+
+    const imageUrl =
+      URL.createObjectURL(blob);
+
+    sliceOverviewAfbeelding.onload =
+      () => {
+        URL.revokeObjectURL(imageUrl);
+      };
+
+    sliceOverviewAfbeelding.src =
+      imageUrl;
+
+    sliceOverviewContainer.style.display =
+      "block";
+
+    sliceOverviewAfbeelding.style.display =
+      "block";
+
+  } catch (error) {
+    verbergSliceOverview();
+    console.error(error);
+  }
 }
 
 
@@ -320,8 +462,10 @@ async function generatePlot() {
     return;
   }
 
-  btnGenereerPlot.disabled =
-    true;
+  if (btnGenereerPlot) {
+    btnGenereerPlot.disabled =
+      true;
+  }
 
   statusEl.textContent =
     "Plot genereren...";
@@ -338,6 +482,11 @@ async function generatePlot() {
     if (is3DPlot(plotType)) {
       plotUrl +=
         `&vector_scale=${Number(vectorScaleEl.value)}`;
+    }
+
+    if (isSpeedPlot(plotType)) {
+      plotUrl +=
+        `&speed_threshold=${Number(speedThresholdEl.value)}`;
     }
 
     plotUrl +=
@@ -372,6 +521,11 @@ async function generatePlot() {
     plotAfbeelding.style.display =
       "block";
 
+    await generateSliceOverview(
+      plotType,
+      plotTypeData
+    );
+
     statusEl.textContent =
       "Plot klaar.";
 
@@ -385,10 +539,14 @@ async function generatePlot() {
     plotAfbeelding.style.display =
       "none";
 
+    verbergSliceOverview();
+
     console.error(error);
 
   } finally {
-    btnGenereerPlot.disabled =
-      false;
+    if (btnGenereerPlot) {
+      btnGenereerPlot.disabled =
+        false;
+    }
   }
 }

@@ -210,7 +210,7 @@
   <h1>CFD-berekening</h1>
 
   <fieldset>
-    <legend>Gridinstellingen</legend>
+    <legend>Grid en rekeninstellingen</legend>
 
     <div class="invoerregel">
       <label for="gridX">Aantal cellen X:</label>
@@ -252,6 +252,20 @@
       >
 
       <span>Hoogterichting</span>
+    </div>
+
+    <div class="invoerregel">
+      <label for="nit">Aantal rekenstappen:</label>
+
+      <input
+        type="number"
+        id="nit"
+        min="1"
+        step="1"
+        value="2000"
+      >
+
+      <span>Meer stappen kan stabielere resultaten geven, maar duurt langer</span>
     </div>
 
     <div class="afmetingen">

@@ -125,6 +125,28 @@
       display: none;
     }
 
+    #leefzoneInstellingen {
+      margin-top: 24px;
+    }
+
+    #leefzoneVelden {
+      margin-top: 12px;
+    }
+
+    .checkboxRegel input {
+      width: auto;
+    }
+
+    #leefzoneResultaten {
+      display: none;
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      background: #f8f8f8;
+      white-space: pre-wrap;
+    }
+
     #speedThresholdContainer {
       display: none;
       margin-top: 4px;
@@ -269,6 +291,86 @@
     </div>
   </fieldset>
 
+
+  <fieldset id="leefzoneInstellingen">
+    <legend>Leefzone / occupied zone - post-processing</legend>
+
+    <div class="invoerregel checkboxRegel">
+      <label for="leefzoneActief">Leefzone tonen/analyseren:</label>
+
+      <input
+        type="checkbox"
+        id="leefzoneActief"
+        checked
+      >
+
+      <span>Deze instelling verandert de CFD-berekening niet; alleen plots en statistiek worden opnieuw gemaakt.</span>
+    </div>
+
+    <div id="leefzoneVelden">
+      <div class="invoerregel">
+        <label for="leefzonePreset">Preset:</label>
+
+        <select id="leefzonePreset">
+          <option value="en16798">EN 16798-3 standaard</option>
+          <option value="zittend">Zittende personen</option>
+          <option value="staand">Staande personen</option>
+          <option value="volledig">Volledige ruimte</option>
+          <option value="handmatig">Handmatig</option>
+        </select>
+
+        <span>Kies een preset of pas de grenzen handmatig aan.</span>
+      </div>
+
+      <div class="invoerregel">
+        <label for="leefzoneZMin">Ondergrens z:</label>
+
+        <input
+          type="number"
+          id="leefzoneZMin"
+          min="0"
+          step="0.01"
+          value="0.05"
+        >
+
+        <span>m boven vloer</span>
+      </div>
+
+      <div class="invoerregel">
+        <label for="leefzoneZMax">Bovengrens z:</label>
+
+        <input
+          type="number"
+          id="leefzoneZMax"
+          min="0"
+          step="0.01"
+          value="1.80"
+        >
+
+        <span>m boven vloer</span>
+      </div>
+
+      <div class="invoerregel">
+        <label for="leefzoneWandafstand">Afstand tot wanden:</label>
+
+        <input
+          type="number"
+          id="leefzoneWandafstand"
+          min="0"
+          step="0.01"
+          value="0.50"
+        >
+
+        <span>m vanaf alle zijwanden</span>
+      </div>
+    </div>
+
+    <p class="helpTekst">
+      De leefzone wordt als grijze stippellijn of transparant volume in alle resultaatplots getekend.
+      Pas je de grenzen aan, dan worden alleen de visualisaties opnieuw gegenereerd.
+    </p>
+  </fieldset>
+
   <div id="status"></div>
   <div id="informatie"></div>
 
@@ -277,6 +379,8 @@
     class="plotKaart"
   >
     <h2>Doorsnedeplot</h2>
+
+    <div id="leefzoneResultaten"></div>
 
     <div id="speedThresholdContainer">
       <div class="sliderRij">

@@ -1,6 +1,9 @@
 // const API_URL = "http://127.0.0.1:8000";
 const API_URL = "https://api.jmuller.be";
 
+const LEEFZONE_STORAGE_KEY =
+  "cfdLeefzonePostprocessingInstellingen";
+
 const plotTypeEl =
   document.getElementById("plotType");
 
@@ -49,6 +52,27 @@ const speedThresholdEl =
 const speedThresholdValueEl =
   document.getElementById("speedThresholdValue");
 
+const leefzoneActiefEl =
+  document.getElementById("leefzoneActief");
+
+const leefzonePresetEl =
+  document.getElementById("leefzonePreset");
+
+const leefzoneVeldenEl =
+  document.getElementById("leefzoneVelden");
+
+const leefzoneZMinEl =
+  document.getElementById("leefzoneZMin");
+
+const leefzoneZMaxEl =
+  document.getElementById("leefzoneZMax");
+
+const leefzoneWandafstandEl =
+  document.getElementById("leefzoneWandafstand");
+
+const leefzoneResultatenEl =
+  document.getElementById("leefzoneResultaten");
+
 let plotInformation =
   null;
 
@@ -56,6 +80,9 @@ let vectorScaleTimer =
   null;
 
 let speedThresholdTimer =
+  null;
+
+let leefzoneTimer =
   null;
 
 
@@ -132,6 +159,39 @@ speedThresholdEl.addEventListener(
 );
 
 
+leefzoneActiefEl.addEventListener(
+  "input",
+  handleLeefzoneInputGewijzigd
+);
+
+leefzonePresetEl.addEventListener(
+  "change",
+  () => {
+    pasLeefzonePresetToe();
+    handleLeefzoneInputGewijzigd();
+  }
+);
+
+[
+  leefzoneZMinEl,
+  leefzoneZMaxEl,
+  leefzoneWandafstandEl
+].forEach((inputElement) => {
+  inputElement.addEventListener(
+    "input",
+    () => {
+      leefzonePresetEl.value =
+        "handmatig";
+
+      handleLeefzoneInputGewijzigd();
+    }
+  );
+});
+
+
+laadLeefzoneInstellingen();
+updateLeefzoneVelden();
+
 loadPlotInformation();
 
 
@@ -165,6 +225,281 @@ function verbergSliceOverview() {
 }
 
 
+function pasLeefzonePresetToe() {
+  const preset =
+    leefzonePresetEl.value;
+
+  const hoogte =
+    plotInformation
+      ? plotInformation.length_z
+      : 2.5;
+
+  if (preset === "en16798") {
+    leefzoneZMinEl.value =
+      "0.05";
+
+    leefzoneZMaxEl.value =
+      "1.80";
+
+    leefzoneWandafstandEl.value =
+      "0.50";
+
+  } else if (preset === "zittend") {
+    leefzoneZMinEl.value =
+      "0.05";
+
+    leefzoneZMaxEl.value =
+      "1.30";
+
+    leefzoneWandafstandEl.value =
+      "0.50";
+
+  } else if (preset === "staand") {
+    leefzoneZMinEl.value =
+      "0.05";
+
+    leefzoneZMaxEl.value =
+      "1.80";
+
+    leefzoneWandafstandEl.value =
+      "0.50";
+
+  } else if (preset === "volledig") {
+    leefzoneZMinEl.value =
+      "0.00";
+
+    leefzoneZMaxEl.value =
+      hoogte.toFixed(2);
+
+    leefzoneWandafstandEl.value =
+      "0.00";
+  }
+}
+
+
+function updateLeefzoneVelden() {
+  const actief =
+    leefzoneActiefEl.checked;
+
+  leefzoneVeldenEl.style.display =
+    actief ? "block" : "none";
+
+  leefzonePresetEl.disabled =
+    !actief;
+
+  leefzoneZMinEl.disabled =
+    !actief;
+
+  leefzoneZMaxEl.disabled =
+    !actief;
+
+  leefzoneWandafstandEl.disabled =
+    !actief;
+}
+
+
+function slaLeefzoneInstellingenOp() {
+  const instellingen = {
+    actief: leefzoneActiefEl.checked,
+    preset: leefzonePresetEl.value,
+    z_min: leefzoneZMinEl.value,
+    z_max: leefzoneZMaxEl.value,
+    wandafstand: leefzoneWandafstandEl.value
+  };
+
+  localStorage.setItem(
+    LEEFZONE_STORAGE_KEY,
+    JSON.stringify(instellingen)
+  );
+}
+
+
+function laadLeefzoneInstellingen() {
+  const opgeslagenInstellingen =
+    localStorage.getItem(LEEFZONE_STORAGE_KEY);
+
+  if (!opgeslagenInstellingen) {
+    return;
+  }
+
+  try {
+    const instellingen =
+      JSON.parse(opgeslagenInstellingen);
+
+    if (instellingen.actief !== undefined) {
+      leefzoneActiefEl.checked =
+        Boolean(instellingen.actief);
+    }
+
+    if (instellingen.preset !== undefined) {
+      leefzonePresetEl.value =
+        instellingen.preset;
+    }
+
+    if (instellingen.z_min !== undefined) {
+      leefzoneZMinEl.value =
+        instellingen.z_min;
+    }
+
+    if (instellingen.z_max !== undefined) {
+      leefzoneZMaxEl.value =
+        instellingen.z_max;
+    }
+
+    if (instellingen.wandafstand !== undefined) {
+      leefzoneWandafstandEl.value =
+        instellingen.wandafstand;
+    }
+
+  } catch (error) {
+    console.error(
+      "Leefzone-instellingen konden niet worden geladen.",
+      error
+    );
+
+    localStorage.removeItem(
+      LEEFZONE_STORAGE_KEY
+    );
+  }
+}
+
+
+function handleLeefzoneInputGewijzigd() {
+  updateLeefzoneVelden();
+  slaLeefzoneInstellingenOp();
+
+  if (!plotInformation) {
+    return;
+  }
+
+  clearTimeout(leefzoneTimer);
+
+  leefzoneTimer =
+    setTimeout(
+      () => {
+        generatePlot();
+      },
+      400
+    );
+}
+
+
+function getLeefzoneInstellingen() {
+  if (!leefzoneActiefEl.checked) {
+    return {
+      actief: false,
+      preset: "uit"
+    };
+  }
+
+  const zMin =
+    Number(leefzoneZMinEl.value);
+
+  const zMax =
+    Number(leefzoneZMaxEl.value);
+
+  const wandafstand =
+    Number(leefzoneWandafstandEl.value);
+
+  const ruimteHoogte =
+    plotInformation
+      ? plotInformation.length_z
+      : zMax;
+
+  const ruimteLengte =
+    plotInformation
+      ? plotInformation.length_x
+      : 0;
+
+  const ruimteBreedte =
+    plotInformation
+      ? plotInformation.length_y
+      : 0;
+
+  if (!Number.isFinite(zMin) || zMin < 0) {
+    throw new Error(
+      "De ondergrens van de leefzone moet minimaal 0 m zijn."
+    );
+  }
+
+  if (!Number.isFinite(zMax) || zMax <= zMin) {
+    throw new Error(
+      "De bovengrens van de leefzone moet groter zijn dan de ondergrens."
+    );
+  }
+
+  if (zMax > ruimteHoogte) {
+    throw new Error(
+      `De bovengrens van de leefzone mag niet hoger zijn dan de ruimtehoogte (${ruimteHoogte.toFixed(2)} m).`
+    );
+  }
+
+  if (!Number.isFinite(wandafstand) || wandafstand < 0) {
+    throw new Error(
+      "De wandafstand van de leefzone moet minimaal 0 m zijn."
+    );
+  }
+
+  if (ruimteLengte > 0 && wandafstand * 2 >= ruimteLengte) {
+    throw new Error(
+      "De wandafstand is te groot voor de lengte van de ruimte."
+    );
+  }
+
+  if (ruimteBreedte > 0 && wandafstand * 2 >= ruimteBreedte) {
+    throw new Error(
+      "De wandafstand is te groot voor de breedte van de ruimte."
+    );
+  }
+
+  return {
+    actief: true,
+    preset: leefzonePresetEl.value,
+    z_min: zMin,
+    z_max: zMax,
+    wandafstand: wandafstand
+  };
+}
+
+
+function getLeefzoneQueryString() {
+  const leefzone =
+    getLeefzoneInstellingen();
+
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    "leefzone_actief",
+    leefzone.actief ? "true" : "false"
+  );
+
+  params.set(
+    "leefzone_preset",
+    leefzone.preset || "uit"
+  );
+
+  if (leefzone.actief) {
+    params.set(
+      "leefzone_z_min",
+      String(leefzone.z_min)
+    );
+
+    params.set(
+      "leefzone_z_max",
+      String(leefzone.z_max)
+    );
+
+    params.set(
+      "leefzone_wandafstand",
+      String(leefzone.wandafstand)
+    );
+  }
+
+  return `&${params.toString()}`;
+}
+
+
 async function loadPlotInformation() {
   statusEl.textContent =
     "Plotinformatie laden...";
@@ -174,6 +509,14 @@ async function loadPlotInformation() {
 
   plotAfbeelding.style.display =
     "none";
+
+  if (leefzoneResultatenEl) {
+    leefzoneResultatenEl.style.display =
+      "none";
+
+    leefzoneResultatenEl.textContent =
+      "";
+  }
 
   verbergSliceOverview();
 
@@ -406,6 +749,7 @@ async function generateSliceOverview(
     const overviewUrl =
       `${API_URL}/slice-overview?plot_type=${plotType}` +
       `&slice_index=${Number(sliceIndexEl.value)}` +
+      getLeefzoneQueryString() +
       `&t=${Date.now()}`;
 
     const response =
@@ -439,6 +783,77 @@ async function generateSliceOverview(
 
   } catch (error) {
     verbergSliceOverview();
+    console.error(error);
+  }
+}
+
+
+async function updateLeefzoneResultaten() {
+  if (!leefzoneResultatenEl) {
+    return;
+  }
+
+  try {
+    const response =
+      await fetch(
+        `${API_URL}/leefzone-summary?` +
+        getLeefzoneQueryString().slice(1) +
+        `&t=${Date.now()}`
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP-fout ${response.status} bij leefzone-resultaten.`
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data.leefzone_actief) {
+      leefzoneResultatenEl.textContent =
+        "Leefzone is uitgeschakeld voor deze post-processingweergave.";
+
+      leefzoneResultatenEl.style.display =
+        "block";
+
+      return;
+    }
+
+    if (!data.leefzone_geldig) {
+      leefzoneResultatenEl.textContent =
+        "Leefzone actief, maar er vallen geen geldige cellen binnen de ingestelde zone.";
+
+      leefzoneResultatenEl.style.display =
+        "block";
+
+      return;
+    }
+
+    const leefzone =
+      data.leefzone;
+
+    leefzoneResultatenEl.textContent =
+      `Leefzone-resultaten\n` +
+      `Preset: ${leefzone.preset}\n` +
+      `Grenzen: z ${leefzone.z_min.toFixed(2)}-${leefzone.z_max.toFixed(2)} m, ` +
+      `wandafstand ${leefzone.wandafstand.toFixed(2)} m\n` +
+      `Aantal cellen in leefzone: ${data.aantal_cellen}\n` +
+      `Gemiddelde snelheid: ${data.gemiddelde_snelheid.toFixed(3)} m/s\n` +
+      `Maximale snelheid: ${data.maximale_snelheid.toFixed(3)} m/s\n` +
+      `Cellen boven 0.20 m/s: ${data.percentage_boven_0_20.toFixed(1)} %\n` +
+      `Cellen boven 0.30 m/s: ${data.percentage_boven_0_30.toFixed(1)} %`;
+
+    leefzoneResultatenEl.style.display =
+      "block";
+
+  } catch (error) {
+    leefzoneResultatenEl.textContent =
+      error.message;
+
+    leefzoneResultatenEl.style.display =
+      "block";
+
     console.error(error);
   }
 }
@@ -490,6 +905,9 @@ async function generatePlot() {
     }
 
     plotUrl +=
+      getLeefzoneQueryString();
+
+    plotUrl +=
       `&t=${Date.now()}`;
 
     const response =
@@ -526,6 +944,8 @@ async function generatePlot() {
       plotTypeData
     );
 
+    await updateLeefzoneResultaten();
+
     statusEl.textContent =
       "Plot klaar.";
 
@@ -538,6 +958,11 @@ async function generatePlot() {
 
     plotAfbeelding.style.display =
       "none";
+
+    if (leefzoneResultatenEl) {
+      leefzoneResultatenEl.style.display =
+        "none";
+    }
 
     verbergSliceOverview();
 

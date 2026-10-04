@@ -2,7 +2,7 @@
 const API_URL = "https://api.jmuller.be";
 
 const CELGROOTTE = 0.125;
-// const CELGROOTTE = 0.6;
+// const CELGROOTTE = 0.3;
 
 const STORAGE_KEY =
   "cfdBerekeningInstellingen";

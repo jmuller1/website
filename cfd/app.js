@@ -1,8 +1,10 @@
+//Tfac lager zetten, bijvoorbeeld van 0.1 naar 0.02 en maxdT lager zetten, bijvoorbeeld van 0.2 naar 0.05
 // const API_URL = "http://127.0.0.1:8000";
 const API_URL = "https://api.jmuller.be";
 
-const CELGROOTTE = 0.125;
-// const CELGROOTTE = 0.3;
+const DEFAULT_CELGROOTTE = 0.125;
+
+const MIN_ROOSTER_CENTRUM_AFSTAND = 3;
 
 const STORAGE_KEY =
   "cfdBerekeningInstellingen";
@@ -37,6 +39,9 @@ const gridYEl =
 const gridZEl =
   document.getElementById("gridZ");
 
+const celGrootteEl =
+  document.getElementById("celGrootte");
+
 const nitEl =
   document.getElementById("nit");
 
@@ -49,6 +54,9 @@ const lengteYEl =
 const lengteZEl =
   document.getElementById("lengteZ");
 
+const celGrootteWeergaveEl =
+  document.getElementById("celGrootteWeergave");
+
 const inlaatGridEl =
   document.getElementById("inlaatGrid");
 
@@ -60,6 +68,15 @@ const geselecteerdeUitlatenEl =
 
 const debietEl =
   document.getElementById("debiet");
+
+const temperatuurRekenenEl =
+  document.getElementById("temperatuurRekenen");
+
+const tinlaatEl =
+  document.getElementById("tinlaat");
+
+const vloerTemperatuurEl =
+  document.getElementById("vloerTemperatuur");
 
 const geselecteerdeInlaten =
   new Set();
@@ -93,6 +110,11 @@ gridZEl.addEventListener(
   handleInputGewijzigd
 );
 
+celGrootteEl.addEventListener(
+  "input",
+  handleInputGewijzigd
+);
+
 nitEl.addEventListener(
   "input",
   handleInputGewijzigd
@@ -101,6 +123,21 @@ nitEl.addEventListener(
 debietEl.addEventListener(
   "input",
   handleInputGewijzigd
+);
+
+temperatuurRekenenEl.addEventListener(
+  "change",
+  handleTemperatuurInstellingenGewijzigd
+);
+
+tinlaatEl.addEventListener(
+  "input",
+  handleTemperatuurInstellingenGewijzigd
+);
+
+vloerTemperatuurEl.addEventListener(
+  "input",
+  handleTemperatuurInstellingenGewijzigd
 );
 
 document
@@ -115,6 +152,7 @@ document
 
 laadInstellingen();
 handleGridInstellingenGewijzigd();
+updateTemperatuurVelden();
 updateResultaatvisualisatieBeschikbaarheid();
 
 
@@ -122,6 +160,43 @@ function handleInputGewijzigd() {
   handleGridInstellingenGewijzigd();
   slaInstellingenOp();
   updateResultaatvisualisatieBeschikbaarheid();
+}
+
+
+function handleTemperatuurInstellingenGewijzigd() {
+  updateTemperatuurVelden();
+  slaInstellingenOp();
+  updateResultaatvisualisatieBeschikbaarheid();
+}
+
+
+function updateTemperatuurVelden() {
+  const temperatuurActief =
+    temperatuurRekenenEl.checked;
+
+  tinlaatEl.disabled =
+    !temperatuurActief;
+
+  vloerTemperatuurEl.disabled =
+    !temperatuurActief;
+}
+
+function berekenWandtemperaturen(vloerTemperatuur) {
+  const referentieTemperatuur =
+    20;
+
+  const overigeWandTemperatuur =
+    referentieTemperatuur +
+    0.2 * (vloerTemperatuur - referentieTemperatuur);
+
+  return [
+    overigeWandTemperatuur,
+    overigeWandTemperatuur,
+    overigeWandTemperatuur,
+    overigeWandTemperatuur,
+    vloerTemperatuur,
+    overigeWandTemperatuur
+  ];
 }
 
 
@@ -140,6 +215,38 @@ function leesGridwaarde(inputElement) {
 }
 
 
+function leesCelgrootteVoorWeergave() {
+  const waarde =
+    Number(celGrootteEl.value);
+
+  if (
+    !Number.isFinite(waarde) ||
+    waarde <= 0
+  ) {
+    return 0;
+  }
+
+  return waarde;
+}
+
+
+function getCelgrootte() {
+  const celGrootte =
+    Number(celGrootteEl.value);
+
+  if (
+    !Number.isFinite(celGrootte) ||
+    celGrootte <= 0
+  ) {
+    throw new Error(
+      "De celgrootte moet een positief getal in meter zijn."
+    );
+  }
+
+  return celGrootte;
+}
+
+
 function updateWerkelijkeAfmetingen() {
   const gridX =
     leesGridwaarde(gridXEl);
@@ -150,14 +257,37 @@ function updateWerkelijkeAfmetingen() {
   const gridZ =
     leesGridwaarde(gridZEl);
 
+  const celGrootte =
+    leesCelgrootteVoorWeergave();
+
+  if (celGrootteWeergaveEl) {
+    celGrootteWeergaveEl.textContent =
+      celGrootte > 0
+        ? celGrootte.toFixed(3)
+        : "ongeldig";
+  }
+
+  if (celGrootte <= 0) {
+    lengteXEl.textContent =
+      "-";
+
+    lengteYEl.textContent =
+      "-";
+
+    lengteZEl.textContent =
+      "-";
+
+    return;
+  }
+
   lengteXEl.textContent =
-    (gridX * CELGROOTTE).toFixed(3);
+    (gridX * celGrootte).toFixed(3);
 
   lengteYEl.textContent =
-    (gridY * CELGROOTTE).toFixed(3);
+    (gridY * celGrootte).toFixed(3);
 
   lengteZEl.textContent =
-    (gridZ * CELGROOTTE).toFixed(3);
+    (gridZ * celGrootte).toFixed(3);
 }
 
 
@@ -196,6 +326,8 @@ function maakInlaatGrid() {
     gridX,
     gridY
   );
+
+  verwijderTeDichteRoosterSelecties();
 
   for (
     let y = gridY;
@@ -284,6 +416,23 @@ function toggleCel(x, y, knop) {
       geselecteerdeInlaten.delete(key);
 
     } else {
+      const afstandControle =
+        controleerRoosterAfstand(
+          x,
+          y,
+          key
+        );
+
+      if (!afstandControle.geldig) {
+        toonRoosterAfstandFout(
+          x,
+          y,
+          afstandControle.bestaande
+        );
+
+        return;
+      }
+
       geselecteerdeInlaten.add(key);
       geselecteerdeUitlaten.delete(key);
     }
@@ -293,6 +442,23 @@ function toggleCel(x, y, knop) {
       geselecteerdeUitlaten.delete(key);
 
     } else {
+      const afstandControle =
+        controleerRoosterAfstand(
+          x,
+          y,
+          key
+        );
+
+      if (!afstandControle.geldig) {
+        toonRoosterAfstandFout(
+          x,
+          y,
+          afstandControle.bestaande
+        );
+
+        return;
+      }
+
       geselecteerdeUitlaten.add(key);
       geselecteerdeInlaten.delete(key);
     }
@@ -306,8 +472,143 @@ function toggleCel(x, y, knop) {
   updateGeselecteerdeInlatenTekst();
   updateGeselecteerdeUitlatenTekst();
 
+  statusEl.textContent =
+    "";
+
   slaInstellingenOp();
   updateResultaatvisualisatieBeschikbaarheid();
+}
+
+
+function getAlleRoosterCentra() {
+  const centra = [];
+
+  for (const key of geselecteerdeInlaten) {
+    const delen =
+      key.split(",");
+
+    centra.push({
+      key: key,
+      type: "inlaat",
+      x: Number(delen[0]),
+      y: Number(delen[1])
+    });
+  }
+
+  for (const key of geselecteerdeUitlaten) {
+    const delen =
+      key.split(",");
+
+    centra.push({
+      key: key,
+      type: "uitstroom",
+      x: Number(delen[0]),
+      y: Number(delen[1])
+    });
+  }
+
+  return centra;
+}
+
+
+function roosterCentraLiggenTeDichtBijElkaar(
+  x1,
+  y1,
+  x2,
+  y2
+) {
+  return (
+    Math.abs(x1 - x2) < MIN_ROOSTER_CENTRUM_AFSTAND &&
+    Math.abs(y1 - y2) < MIN_ROOSTER_CENTRUM_AFSTAND
+  );
+}
+
+
+function controleerRoosterAfstand(x, y, negeerKey) {
+  for (const bestaand of getAlleRoosterCentra()) {
+    if (bestaand.key === negeerKey) {
+      continue;
+    }
+
+    if (
+      roosterCentraLiggenTeDichtBijElkaar(
+        x,
+        y,
+        bestaand.x,
+        bestaand.y
+      )
+    ) {
+      return {
+        geldig: false,
+        bestaande: bestaand
+      };
+    }
+  }
+
+  return {
+    geldig: true,
+    bestaande: null
+  };
+}
+
+
+function toonRoosterAfstandFout(x, y, bestaand) {
+  const bestaandTekst = bestaand
+    ? `${bestaand.type} [${bestaand.x}, ${bestaand.y}]`
+    : "een bestaand rooster";
+
+  statusEl.textContent =
+    `Rooster niet geplaatst: centrum [${x}, ${y}] ligt te dicht bij ${bestaandTekst}. ` +
+    `Houd minimaal ${MIN_ROOSTER_CENTRUM_AFSTAND} cellen tussen de roostercentra aan.`;
+}
+
+
+function verwijderTeDichteRoosterSelecties() {
+  const geaccepteerdeCentra = [];
+  let isGewijzigd =
+    false;
+
+  const verwerkSet = (selectieSet) => {
+    for (const key of Array.from(selectieSet)) {
+      const delen =
+        key.split(",");
+
+      const x =
+        Number(delen[0]);
+
+      const y =
+        Number(delen[1]);
+
+      const teDicht =
+        geaccepteerdeCentra.some((bestaand) =>
+          roosterCentraLiggenTeDichtBijElkaar(
+            x,
+            y,
+            bestaand.x,
+            bestaand.y
+          )
+        );
+
+      if (teDicht) {
+        selectieSet.delete(key);
+        isGewijzigd =
+          true;
+
+      } else {
+        geaccepteerdeCentra.push({
+          x: x,
+          y: y
+        });
+      }
+    }
+  };
+
+  verwerkSet(geselecteerdeInlaten);
+  verwerkSet(geselecteerdeUitlaten);
+
+  if (isGewijzigd) {
+    slaInstellingenOp();
+  }
 }
 
 
@@ -474,8 +775,12 @@ function getInputSignature() {
     gridX: gridXEl.value,
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
+    celGrootte: celGrootteEl.value,
     nit: nitEl.value,
     debiet: debietEl.value,
+    temperatuurRekenen: temperatuurRekenenEl.checked,
+    tinlaat: tinlaatEl.value,
+    vloerTemperatuur: vloerTemperatuurEl.value,
     inlaten: getGeselecteerdeInlaten(),
     uitlaten: getGeselecteerdeUitlaten()
   };
@@ -523,8 +828,12 @@ function slaInstellingenOp() {
     gridX: gridXEl.value,
     gridY: gridYEl.value,
     gridZ: gridZEl.value,
+    celGrootte: celGrootteEl.value,
     nit: nitEl.value,
     debiet: debietEl.value,
+    temperatuurRekenen: temperatuurRekenenEl.checked,
+    tinlaat: tinlaatEl.value,
+    vloerTemperatuur: vloerTemperatuurEl.value,
     inlaten: getGeselecteerdeInlaten(),
     uitlaten: getGeselecteerdeUitlaten(),
     selectieModus: getSelectieModus()
@@ -564,6 +873,11 @@ function laadInstellingen() {
         instellingen.gridZ;
     }
 
+    if (instellingen.celGrootte !== undefined) {
+      celGrootteEl.value =
+        instellingen.celGrootte;
+    }
+
     if (instellingen.nit !== undefined) {
       nitEl.value =
         instellingen.nit;
@@ -572,6 +886,21 @@ function laadInstellingen() {
     if (instellingen.debiet !== undefined) {
       debietEl.value =
         instellingen.debiet;
+    }
+
+    if (instellingen.temperatuurRekenen !== undefined) {
+      temperatuurRekenenEl.checked =
+        Boolean(instellingen.temperatuurRekenen);
+    }
+
+    if (instellingen.tinlaat !== undefined) {
+      tinlaatEl.value =
+        instellingen.tinlaat;
+    }
+
+    if (instellingen.vloerTemperatuur !== undefined) {
+      vloerTemperatuurEl.value =
+        instellingen.vloerTemperatuur;
     }
 
     if (instellingen.selectieModus !== undefined) {
@@ -675,11 +1004,23 @@ function resetNaarStandaardInstellingen() {
   gridZEl.value =
     "20";
 
+  celGrootteEl.value =
+    String(DEFAULT_CELGROOTTE);
+
   nitEl.value =
     "2000";
 
   debietEl.value =
     "200";
+
+  temperatuurRekenenEl.checked =
+    true;
+
+  tinlaatEl.value =
+    "15";
+
+  vloerTemperatuurEl.value =
+    "20";
 
   geselecteerdeInlaten.clear();
   geselecteerdeUitlaten.clear();
@@ -695,6 +1036,7 @@ function resetNaarStandaardInstellingen() {
   }
 
   handleGridInstellingenGewijzigd();
+  updateTemperatuurVelden();
 
   updateGeselecteerdeInlatenTekst();
   updateGeselecteerdeUitlatenTekst();
@@ -790,6 +1132,33 @@ async function runCalculation() {
       );
     }
 
+    const temperatuurRekenen =
+      temperatuurRekenenEl.checked;
+
+    const tinlaat =
+      Number(tinlaatEl.value);
+
+    if (temperatuurRekenen && !Number.isFinite(tinlaat)) {
+      throw new Error(
+        "Vul een geldige inblaasluchttemperatuur in."
+      );
+    }
+
+    const vloerTemperatuur =
+      Number(vloerTemperatuurEl.value);
+
+    if (temperatuurRekenen && !Number.isFinite(vloerTemperatuur)) {
+      throw new Error(
+        "Vul een geldige vloertemperatuur in."
+      );
+    }
+
+    const wandtemperaturen =
+      berekenWandtemperaturen(vloerTemperatuur);
+
+    const celGrootte =
+      getCelgrootte();
+
     const gridverh =
       getGridverhouding();
 
@@ -821,7 +1190,7 @@ async function runCalculation() {
       T_init: 0,
 
       lengte:
-        CELGROOTTE * gridverh[0],
+        celGrootte * gridverh[0],
 
       gridverh: gridverh,
 
@@ -840,14 +1209,14 @@ async function runCalculation() {
       uitlaten: uitlaten,
 
       debiet: debiet,
-      alpha: 0,
+      alpha: 3.5,
       Rc: 6,
 
       pfac: 0.1,
       vfac: 0.4,
-      Tfac: 0.5,
+      Tfac: 0.1,  //aangepast
       maxdv: 0.07,
-      Tcon: false,
+      Tcon: temperatuurRekenen,
 
       wanden: [
         [0, 0, 0, 0, 0, 0]
@@ -863,18 +1232,11 @@ async function runCalculation() {
         0
       ],
 
-      wandtemp: [
-        20,
-        20,
-        20,
-        20,
-        20,
-        20
-      ],
+      wandtemp: wandtemperaturen,
 
       Tref: 20,
-      Tinlaat: 20,
-      maxdT: 0.2,
+      Tinlaat: tinlaat,
+      maxdT: 0.2, //aangepast
       impfac: 0
     };
 
@@ -907,26 +1269,56 @@ async function runCalculation() {
     statusEl.textContent =
       "Berekening klaar";
 
+    const rekentijdTekst =
+      typeof data.calculation_time_seconds === "number"
+        ? `Rekentijd backend: ${data.calculation_time_seconds.toFixed(1)} s
+`
+        : "";
+
+    const uitvoerGridTekst =
+      data.calculation && Array.isArray(data.calculation.grid_shape)
+        ? `Uitvoergrid inclusief randcellen: ${data.calculation.grid_shape.join(" × ")}
+`
+        : "";
+
     resultaatEl.textContent =
-      `Status: ${data.status}\n` +
-      `Grid: ` +
+      `Status: ${data.status}
+` +
+      rekentijdTekst +
+      uitvoerGridTekst +
+      `Grid invoer: ` +
       `${gridverh[0]} × ` +
       `${gridverh[1]} × ` +
-      `${gridverh[2]}\n` +
+      `${gridverh[2]}
+` +
       `Rekenstappen: ` +
-      `${nit}\n` +
+      `${nit}
+` +
+      `Celgrootte: ` +
+      `${celGrootte.toFixed(3)} m
+` +
+      `Temperatuur meenemen: ` +
+      `${temperatuurRekenen ? "ja" : "nee"}
+` +
+      `Inblaasluchttemperatuur: ` +
+      `${tinlaat.toFixed(1)} °C
+` +
+      `Vloertemperatuur: ` +
+      `${vloerTemperatuur.toFixed(1)} °C
+` +
+      `Afgeleide wandtemperatuur: ` +
+      `${wandtemperaturen[0].toFixed(1)} °C
+` +
       `Afmetingen: ` +
-      `${(gridverh[0] * CELGROOTTE).toFixed(3)} × ` +
-      `${(gridverh[1] * CELGROOTTE).toFixed(3)} × ` +
-      `${(gridverh[2] * CELGROOTTE).toFixed(3)} m\n` +
+      `${(gridverh[0] * celGrootte).toFixed(3)} × ` +
+      `${(gridverh[1] * celGrootte).toFixed(3)} × ` +
+      `${(gridverh[2] * celGrootte).toFixed(3)} m
+` +
       `Inlaten: ` +
-      `${JSON.stringify(inlaten)}\n` +
+      `${JSON.stringify(inlaten)}
+` +
       `Uitstroompunten: ` +
-      `${JSON.stringify(uitlaten)}\n` +
-      `Temperatuur grid grootte: ` +
-      `${data.temperature.length}\n` +
-      `Airflow grid grootte: ` +
-      `${data.airflow.length}`;
+      `${JSON.stringify(uitlaten)}`;
 
     plotAfbeelding.src =
       `${API_URL}${data.plot_url}` +

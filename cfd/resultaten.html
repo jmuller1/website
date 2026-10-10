@@ -67,8 +67,7 @@
       margin-top: 16px;
     }
 
-    .plotKaart {
-      display: none;
+    .resultaatKaart {
       margin-top: 24px;
       padding: 20px;
       border: 1px solid #999;
@@ -76,14 +75,36 @@
       background: #ffffff;
     }
 
-    .plotKaart h2 {
+    .resultaatKaart h2 {
       margin-top: 0;
       margin-bottom: 12px;
       font-size: 1.15rem;
     }
 
+    .plotKaart {
+      display: none;
+    }
+
     .plotKaart:has(#plotAfbeelding[style*="block"]) {
       display: block;
+    }
+
+    #leefzoneResultatenKaart {
+      display: none;
+    }
+
+    .subblok {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid #cccccc;
+      border-radius: 6px;
+      background: #f8f8f8;
+    }
+
+    .subblok h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 1rem;
     }
 
     #plotAfbeelding {
@@ -139,11 +160,6 @@
 
     #leefzoneResultaten {
       display: none;
-      margin-bottom: 16px;
-      padding: 14px;
-      border: 1px solid #cccccc;
-      border-radius: 6px;
-      background: #f8f8f8;
       white-space: pre-wrap;
     }
 
@@ -181,7 +197,7 @@
       }
 
       fieldset,
-      .plotKaart {
+      .resultaatKaart {
         padding: 14px;
       }
 
@@ -250,7 +266,7 @@
         <div id="vectorScaleContainer">
           <div class="sliderRij">
             <label for="vectorScale">
-              Pijlschaal 3D:
+              Pijlschaal vectoren:
             </label>
 
             <input
@@ -268,7 +284,7 @@
           </div>
 
           <p class="helpTekst">
-            Hiermee pas je alleen de lengte van de pijlen in de 3D-plot aan.
+            Hiermee pas je alleen de lengte van de pijlen in vectorplots aan.
             De CFD-berekening zelf verandert niet.
           </p>
         </div>
@@ -290,6 +306,53 @@
       </div>
     </div>
   </fieldset>
+
+  <section
+    id="plotKaart"
+    class="resultaatKaart plotKaart"
+  >
+    <h2>Werkelijke doorsnedeplot</h2>
+
+    <div
+      id="speedThresholdContainer"
+      class="subblok"
+    >
+      <h3>Input gebruiker voor deze plot</h3>
+
+      <div class="sliderRij">
+        <label for="speedThreshold">
+          Snelheidsdrempel rood:
+        </label>
+
+        <input
+          type="range"
+          id="speedThreshold"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.3"
+        >
+
+        <span id="speedThresholdValue">
+          0.30 m/s
+        </span>
+      </div>
+
+      <p class="helpTekst">
+        Deze instelling hoort alleen bij de doorsnedeplot hieronder.
+        Zones met een snelheid boven deze waarde worden rood gemarkeerd.
+      </p>
+    </div>
+
+    <div class="subblok">
+      <h3>Output: gekozen doorsnede</h3>
+
+      <img
+        id="plotAfbeelding"
+        alt="Resultaatplot"
+      >
+    </div>
+  </section>
 
 
   <fieldset id="leefzoneInstellingen">
@@ -371,48 +434,95 @@
     </p>
   </fieldset>
 
+
+  <fieldset id="comfortInstellingen">
+    <legend>Comfortanalyse - aannames voor post-processing</legend>
+
+    <div class="invoerregel">
+      <label for="metabolisme">Metabolisme / activiteit:</label>
+
+      <input
+        type="number"
+        id="metabolisme"
+        min="0.5"
+        step="0.1"
+        value="1.2"
+      >
+
+      <span>met. Bijvoorbeeld 1.2 voor zittend/licht werk.</span>
+    </div>
+
+    <div class="invoerregel">
+      <label for="kledingisolatie">Kledingisolatie:</label>
+
+      <input
+        type="number"
+        id="kledingisolatie"
+        min="0"
+        step="0.1"
+        value="0.5"
+      >
+
+      <span>clo. Bijvoorbeeld 0.5 zomer, 1.0 winter.</span>
+    </div>
+
+    <div class="invoerregel">
+      <label for="relatieveLuchtvochtigheid">Relatieve luchtvochtigheid:</label>
+
+      <input
+        type="number"
+        id="relatieveLuchtvochtigheid"
+        min="0"
+        max="100"
+        step="1"
+        value="50"
+      >
+
+      <span>%</span>
+    </div>
+
+    <div class="invoerregel">
+      <label for="turbulentieIntensiteit">Turbulentie-intensiteit:</label>
+
+      <input
+        type="number"
+        id="turbulentieIntensiteit"
+        min="0"
+        max="100"
+        step="1"
+        value="40"
+      >
+
+      <span>%, gebruikt als aanname voor draught rate.</span>
+    </div>
+
+    <p class="helpTekst">
+      Deze waarden veranderen de CFD-berekening niet. Ze worden alleen gebruikt
+      voor comfort-post-processing op het bestaande resultaat. Voor PMV/PPD wordt
+      de stralingstemperatuur voorlopig gelijkgesteld aan de lokale luchttemperatuur.
+    </p>
+  </fieldset>
+
+  <section
+    id="leefzoneResultatenKaart"
+    class="resultaatKaart"
+  >
+    <h2>Resultaten leefzone</h2>
+
+    <p class="helpTekst">
+      Deze getallen zijn onafhankelijk van de gekozen doorsnede.
+      Ze worden berekend over alle cellen binnen de ingestelde leefzone.
+    </p>
+
+    <div
+      id="leefzoneResultaten"
+      class="subblok"
+    ></div>
+  </section>
+
   <div id="status"></div>
   <div id="informatie"></div>
 
-  <section
-    id="plotKaart"
-    class="plotKaart"
-  >
-    <h2>Doorsnedeplot</h2>
-
-    <div id="leefzoneResultaten"></div>
-
-    <div id="speedThresholdContainer">
-      <div class="sliderRij">
-        <label for="speedThreshold">
-          Snelheidsdrempel rood:
-        </label>
-
-        <input
-          type="range"
-          id="speedThreshold"
-          min="0"
-          max="1"
-          step="0.01"
-          value="0.3"
-        >
-
-        <span id="speedThresholdValue">
-          0.30 m/s
-        </span>
-      </div>
-
-      <p class="helpTekst">
-        Deze instelling hoort bij de doorsnedeplot hieronder:
-        zones met een snelheid boven deze waarde worden rood gemarkeerd.
-      </p>
-    </div>
-
-    <img
-      id="plotAfbeelding"
-      alt="Resultaatplot"
-    >
-  </section>
 
   <script src="resultaten.js"></script>
 </body>

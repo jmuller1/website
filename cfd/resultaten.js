@@ -1,6 +1,12 @@
 // const API_URL = "http://127.0.0.1:8000";
 const API_URL = "https://api.jmuller.be";
 
+const urlParams =
+  new URLSearchParams(window.location.search);
+
+const jobId =
+  urlParams.get("job_id");
+
 const LEEFZONE_STORAGE_KEY =
   "cfdLeefzonePostprocessingInstellingen";
 
@@ -711,6 +717,16 @@ function getLeefzoneQueryString() {
 
 
 async function loadPlotInformation() {
+  if (!jobId) {
+    statusEl.textContent =
+      "Fout";
+
+    informatieEl.textContent =
+      "Geen job_id gevonden. Ga terug naar de invoer en start opnieuw een berekening.";
+
+    return;
+  }
+
   statusEl.textContent =
     "Plotinformatie laden...";
 
@@ -738,7 +754,7 @@ async function loadPlotInformation() {
   try {
     const response =
       await fetch(
-        `${API_URL}/plot-info?t=${Date.now()}`
+        `${API_URL}/plot-info?job_id=${encodeURIComponent(jobId)}&t=${Date.now()}`
       );
 
     if (!response.ok) {
@@ -938,6 +954,8 @@ function updateSpeedThresholdVisibility() {
 
 function updateInformatieTekst() {
   informatieEl.textContent =
+    `Job ID: ${jobId}
+` +
     `Grid inclusief randcellen: ` +
     `${plotInformation.ni} × ` +
     `${plotInformation.nj} × ` +
@@ -962,7 +980,8 @@ async function generateSliceOverview(
 
   try {
     const overviewUrl =
-      `${API_URL}/slice-overview?plot_type=${plotType}` +
+      `${API_URL}/slice-overview?job_id=${encodeURIComponent(jobId)}` +
+      `&plot_type=${plotType}` +
       `&slice_index=${Number(sliceIndexEl.value)}` +
       getLeefzoneQueryString() +
       `&t=${Date.now()}`;
@@ -1011,8 +1030,8 @@ async function updateLeefzoneResultaten() {
   try {
     const response =
       await fetch(
-        `${API_URL}/leefzone-summary?` +
-        getLeefzoneQueryString().slice(1) +
+        `${API_URL}/leefzone-summary?job_id=${encodeURIComponent(jobId)}` +
+        getLeefzoneQueryString() +
         getComfortQueryString() +
         `&t=${Date.now()}`
       );
@@ -1180,7 +1199,7 @@ async function generatePlot() {
 
   try {
     let plotUrl =
-      `${API_URL}/plot?plot_type=${plotType}`;
+      `${API_URL}/plot?job_id=${encodeURIComponent(jobId)}&plot_type=${plotType}`;
 
     if (plotTypeData.slice_axis !== null) {
       plotUrl +=

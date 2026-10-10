@@ -12,6 +12,9 @@ const STORAGE_KEY =
 const LAST_CALCULATION_SIGNATURE_KEY =
   "cfdLaatsteBerekeningSignature";
 
+const LAST_JOB_ID_KEY =
+  "cfdLaatsteJobId";
+
 const btnBereken =
   document.getElementById("btnBereken");
 
@@ -29,6 +32,9 @@ const plotAfbeelding =
 
 const resultaatNavigatie =
   document.getElementById("resultaatNavigatie");
+
+const btnResultaatvisualisatie =
+  document.getElementById("btnResultaatvisualisatie");
 
 const gridXEl =
   document.getElementById("gridX");
@@ -789,10 +795,34 @@ function getInputSignature() {
 }
 
 
+function stelResultaatNavigatieIn(jobId) {
+  if (!btnResultaatvisualisatie || !jobId) {
+    resultaatNavigatie.style.display =
+      "none";
+
+    return;
+  }
+
+  btnResultaatvisualisatie.onclick =
+    () => {
+      window.location.href =
+        `resultaten.html?job_id=${encodeURIComponent(jobId)}`;
+    };
+
+  resultaatNavigatie.style.display =
+    "block";
+}
+
+
 function updateResultaatvisualisatieBeschikbaarheid() {
   const laatsteBerekeningSignature =
     localStorage.getItem(
       LAST_CALCULATION_SIGNATURE_KEY
+    );
+
+  const laatsteJobId =
+    localStorage.getItem(
+      LAST_JOB_ID_KEY
     );
 
   const huidigeInputSignature =
@@ -800,10 +830,10 @@ function updateResultaatvisualisatieBeschikbaarheid() {
 
   if (
     laatsteBerekeningSignature &&
-    laatsteBerekeningSignature === huidigeInputSignature
+    laatsteBerekeningSignature === huidigeInputSignature &&
+    laatsteJobId
   ) {
-    resultaatNavigatie.style.display =
-      "block";
+    stelResultaatNavigatieIn(laatsteJobId);
 
   } else {
     resultaatNavigatie.style.display =
@@ -812,14 +842,18 @@ function updateResultaatvisualisatieBeschikbaarheid() {
 }
 
 
-function markeerBerekeningAlsActueel() {
+function markeerBerekeningAlsActueel(jobId) {
   localStorage.setItem(
     LAST_CALCULATION_SIGNATURE_KEY,
     getInputSignature()
   );
 
-  resultaatNavigatie.style.display =
-    "block";
+  localStorage.setItem(
+    LAST_JOB_ID_KEY,
+    jobId
+  );
+
+  stelResultaatNavigatieIn(jobId);
 }
 
 
@@ -993,6 +1027,10 @@ function resetNaarStandaardInstellingen() {
 
   localStorage.removeItem(
     LAST_CALCULATION_SIGNATURE_KEY
+  );
+
+  localStorage.removeItem(
+    LAST_JOB_ID_KEY
   );
 
   gridXEl.value =
@@ -1266,6 +1304,12 @@ async function runCalculation() {
     const data =
       await response.json();
 
+    if (!data.job_id) {
+      throw new Error(
+        "Backend gaf geen job_id terug."
+      );
+    }
+
     statusEl.textContent =
       "Berekening klaar";
 
@@ -1283,6 +1327,8 @@ async function runCalculation() {
 
     resultaatEl.textContent =
       `Status: ${data.status}
+` +
+      `Job ID: ${data.job_id}
 ` +
       rekentijdTekst +
       uitvoerGridTekst +
@@ -1327,7 +1373,7 @@ async function runCalculation() {
     plotAfbeelding.style.display =
       "block";
 
-    markeerBerekeningAlsActueel();
+    markeerBerekeningAlsActueel(data.job_id);
 
   } catch (error) {
     statusEl.textContent =

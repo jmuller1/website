@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header><div class="wrap header"><div><span class="eyebrow">ENGINEERING TOOLS / HEAT TRANSFER</span><h1>HEX <span>Bell–Delaware</span></h1><p>Shell &amp; Tube Heat Exchanger Rating</p></div><span class="environment">Engineering calculation tool</span></div></header>
+<header><div class="wrap header"><div><span class="eyebrow">ENGINEERING TOOLS / HEAT TRANSFER</span><h1>HEX <span>Bell–Delaware</span></h1><p>Shell &amp; Tube Heat Exchanger Rating</p></div><span class="environment">Engineering calculation tool</span></div></header><nav class="mode-nav wrap" aria-label="Calculation mode"><a class="active" aria-current="page" href="index.html">Bell–Delaware</a><a href="ntu.html">Bell–Delaware + ε-NTU</a></nav>
 <main class="wrap">
 <div class="toolbar"><button id="resetBtn" class="outline">Reset to default values</button><div class="spacer"></div><span id="apiStatus">Connecting to calculation backend…</span></div>
 <div id="message" role="status"></div>
@@ -14,5 +14,5 @@
 <aside><div class="card sidecard"><span class="eyebrow">CALCULATION</span><h2>Run rating</h2><p>Calculations run on the Python backend, using the validated calculation model and its lookup tables.</p><button id="calculateBtn" class="primary" disabled>Calculate <span aria-hidden="true">→</span></button><div id="calculationStatus" class="subtle">Adjust the input values, then run the calculation.</div></div><div class="card note"><strong>About calculated inputs</strong><p>Grey values are calculated automatically from other inputs. They update shortly after an input changes; the full rating runs when you select Calculate.</p></div></aside></div>
 <section class="results" id="results" hidden><div class="results-heading"><div><span class="eyebrow">RATING RESULTS</span><h2 id="resultsTitle">Calculation results</h2></div><span class="pill" id="resultBadge">Calculated</span></div><div id="keyMetrics" class="metrics"></div><div class="card"><div class="section-title"><h3>Result summary</h3><span>Heat transfer and pressure losses</span></div><div class="table-wrap"><table><thead><tr><th>Property</th><th>Symbol</th><th>Value</th><th>Unit</th></tr></thead><tbody id="summaryRows"></tbody></table></div></div><div class="card"><div class="section-title"><h3>Detailed calculations</h3><span>Intermediate engineering values</span></div><div id="detailedGroups"></div></div></section>
 <footer>Engineering results are indicative until verified against the applicable design requirements and operating conditions.</footer>
-</main><script src="app.js"></script>
+</main><script src="app-bell.js"></script>
 </body></html>

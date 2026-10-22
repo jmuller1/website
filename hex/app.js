@@ -1,14 +1,14 @@
-﻿// Local: http://127.0.0.1:8001  |  Live: https://hex-api.jmuller.be (set when deployed)
+// Local: http://127.0.0.1:8001  |  Live: https://hex-api.jmuller.be (set when deployed)
 const API_URL = 'https://hex-api.jmuller.be';
 // const API_URL = 'https://hex-api.jmuller.be';
 const NTU_MODE = /(?:^|\/)ntu\.html$/i.test(window.location.pathname);
 const state = { data: null, inputs: {}, refreshSeq: 0, refreshTimer: null, lastNTU: null, manualHistory: [] };
 const $ = id => document.getElementById(id);
 function format(value, significant = 4) {
-  if (value === null || value === undefined || value === '') return 'â€”';
+  if (value === null || value === undefined || value === '') return '—';
   if (typeof value === 'string' && isNaN(Number(value))) return value;
   const n = Number(value);
-  if (!Number.isFinite(n)) return 'â€”';
+  if (!Number.isFinite(n)) return '—';
   return n.toLocaleString('en-US', {
     maximumSignificantDigits: significant,
     useGrouping: false
@@ -28,15 +28,15 @@ function numericInput(value, significant = 5) {
   });
 }
 // The calculation state retains full precision; input formatting only affects the display.
-// De originele Bellâ€“Delaware-rekenmotor blijft in de historische eenheden.
-// Alleen de Îµ-NTU-pagina presenteert en accepteert SI-eenheden.
+// De originele Bell–Delaware-rekenmotor blijft in de historische eenheden.
+// Alleen de ε-NTU-pagina presenteert en accepteert SI-eenheden.
 const SI_FACTORS = {
   // kg/h blijft kg/h.
   '14':.001,'17':.001,'26':.001,'29':.001, // cP -> Pa.s
   '15':4184,'27':4184, // kcal/kg/K -> J/kg/K
   '16':4184/3600,'28':4184/3600, // kcal/m/h/K -> W/m/K
   '18':100000,'30':100000, // bar -> Pa
-  '19':3600/4184,'31':3600/4184, // mÂ².h.K/kcal -> mÂ².K/W
+  '19':3600/4184,'31':3600/4184, // m².h.K/kcal -> m².K/W
   // Geometrische millimeters blijven millimeters.
 };
 const toDisplay=(row,v)=> NTU_MODE && SI_FACTORS[String(row)] && v!==null ? Number(v)*SI_FACTORS[String(row)]:v;
@@ -46,18 +46,18 @@ const translate = text => String(text);
 const unitDisplay=(row,old)=>{
   if(!NTU_MODE)return old;
   if(['10','22'].includes(String(row)))return 'kg/h';
-  if(['14','17','26','29'].includes(String(row)))return 'PaÂ·s';
-  if(['15','27'].includes(String(row)))return 'J/(kgÂ·K)';
-  if(['16','28'].includes(String(row)))return 'W/(mÂ·K)';
+  if(['14','17','26','29'].includes(String(row)))return 'Pa·s';
+  if(['15','27'].includes(String(row)))return 'J/(kg·K)';
+  if(['16','28'].includes(String(row)))return 'W/(m·K)';
   if(['18','30'].includes(String(row)))return 'Pa';
-  if(['19','31'].includes(String(row)))return 'mÂ²Â·K/W';
+  if(['19','31'].includes(String(row)))return 'm²·K/W';
   if(['40','42','43','46','53','54','55','56','57','58','60','61','63','64'].includes(String(row)))return 'mm';
   return old;
 };
 const LEGACY_RESULT_FACTOR={
   'kcal/h':4184/3600,'Kcal/h':4184/3600,
-  'Kcal/mÂ².h.Â°C':4184/3600,'Kcal/mÂ².h.K':4184/3600,
-  'bar':100000,'kcal/(mÂ²Â·hÂ·K)':4184/3600
+  'Kcal/m².h.°C':4184/3600,'Kcal/m².h.K':4184/3600,
+  'bar':100000,'kcal/(m²·h·K)':4184/3600
 };
 function displayedResult(row){
   let out={...row,label:translate(row.label)};
@@ -67,14 +67,14 @@ function displayedResult(row){
   if(row.value==null || !Number.isFinite(num))return out;
   // Alle voor het oorspronkelijke model gebruikte imperial/calorische
   // eenheden expliciet converteren voor de SI-resultatenweergave.
-  if(/mÂ²[.Â·]h.*kcal/i.test(unit)){out.value=num*3600/4184;out.unit='mÂ²Â·K/W';}
+  if(/m²[.·]h.*kcal/i.test(unit)){out.value=num*3600/4184;out.unit='m²·K/W';}
   else if(/kcal/i.test(unit)){
-    if(/kg/i.test(unit)){out.value=num*4184;out.unit='J/(kgÂ·K)';}
-    else if(/mÂ²|m2/i.test(unit)){out.value=num*4184/3600;out.unit='W/(mÂ²Â·K)';}
-    else if(/m[.Â·\/]/i.test(unit)){out.value=num*4184/3600;out.unit='W/(mÂ·K)';}
+    if(/kg/i.test(unit)){out.value=num*4184;out.unit='J/(kg·K)';}
+    else if(/m²|m2/i.test(unit)){out.value=num*4184/3600;out.unit='W/(m²·K)';}
+    else if(/m[.·\/]/i.test(unit)){out.value=num*4184/3600;out.unit='W/(m·K)';}
     else if(/h/i.test(unit)){out.value=num*4184/3600;out.unit='W';}
   } else if(/bar/i.test(unit)){out.value=num*100000;out.unit='Pa';}
-  else if(/cp/i.test(unit)){out.value=num*.001;out.unit='PaÂ·s';}
+  else if(/cp/i.test(unit)){out.value=num*.001;out.unit='Pa·s';}
   else if(/kg\/h/i.test(unit)){out.unit='kg/h';}
   else if(unit==='mm'){out.unit='mm';}
   return out;
@@ -113,7 +113,7 @@ function populateDefaults() {
   for(const row of group.rows){
    const field=c.fields[String(row)];if(!field) continue;
    const wrapper=document.createElement('div');wrapper.className='field'+(!field.editable?' derived':'');
-   const label=document.createElement('label');label.htmlFor='field-'+row;label.textContent=NTU_MODE && row===12?'Assumed hot outlet temperature â€” feedback input':NTU_MODE && row===24?'Cold outlet â€” Bellâ€“Delaware energy balance':translate(field.label);
+   const label=document.createElement('label');label.htmlFor='field-'+row;label.textContent=NTU_MODE && row===12?'Assumed hot outlet temperature — feedback input':NTU_MODE && row===24?'Cold outlet — Bell–Delaware energy balance':translate(field.label);
    let input;
    if(field.select && field.editable){
     input=document.createElement('select');
@@ -151,7 +151,7 @@ function populateDefaults() {
 }
 function fillRows(elementId, rows){
  $(elementId).replaceChildren();
- for(const source of rows){const row=displayedResult(source);const tr=document.createElement('tr');for(const v of [row.label,row.symbol,format(row.value),row.unit]){const td=document.createElement('td');td.textContent=v||'â€”';tr.appendChild(td)}$(elementId).appendChild(tr)}
+ for(const source of rows){const row=displayedResult(source);const tr=document.createElement('tr');for(const v of [row.label,row.symbol,format(row.value),row.unit]){const td=document.createElement('td');td.textContent=v||'—';tr.appendChild(td)}$(elementId).appendChild(tr)}
 }
 function showResults(data){
  $('results').hidden=false;$('resultsTitle').textContent='Calculation results';
@@ -172,7 +172,7 @@ function showResults(data){
   summary.textContent=`${translate(group.name)} (${group.items.length} results)`;detail.appendChild(summary);
   const table=document.createElement('table');const tbody=document.createElement('tbody');
   for(const source of group.items){const item=displayedResult(source);const tr=document.createElement('tr');
-   for(const txt of [item.label,item.symbol,format(item.value),item.unit]){const td=document.createElement('td');td.textContent=txt||'â€”';tr.appendChild(td)}tbody.appendChild(tr)}
+   for(const txt of [item.label,item.symbol,format(item.value),item.unit]){const td=document.createElement('td');td.textContent=txt||'—';tr.appendChild(td)}tbody.appendChild(tr)}
   table.appendChild(tbody);detail.appendChild(table);$('detailedGroups').appendChild(detail);
  }
  for(const [row,value] of Object.entries(data.derived)){
@@ -186,13 +186,13 @@ function showNTU(x) {
   const items = [
     ['Hot capacity rate',x.capacity_hot*4184/3600,'W/K'],['Cold capacity rate',x.capacity_cold*4184/3600,'W/K'],
     ['C minimum',x.capacity_min*4184/3600,'W/K'],['C maximum',x.capacity_max*4184/3600,'W/K'],
-    ['Capacity ratio Cr',x.capacity_ratio,'â€”'],['Fouled overall U',x.overall_u_dirty*4184/3600,'W/(mÂ²Â·K)'],
-    ['Available area',x.area_available,'mÂ²'],['UA',x.ua*4184/3600,'W/K'],
-    ['NTU',x.ntu,'â€”'],['Effectiveness Îµ',x.effectiveness,'â€”'],
+    ['Capacity ratio Cr',x.capacity_ratio,'—'],['Fouled overall U',x.overall_u_dirty*4184/3600,'W/(m²·K)'],
+    ['Available area',x.area_available,'m²'],['UA',x.ua*4184/3600,'W/K'],
+    ['NTU',x.ntu,'—'],['Effectiveness ε',x.effectiveness,'—'],
     ['Maximum heat duty',x.q_max*4184/3600,'W'],['Predicted heat duty',x.heat_duty*4184/3600,'W'],
-    ['Predicted hot outlet temperature',x.hot_outlet_temperature,'Â°C'],
-    ['Predicted cold outlet temperature',x.cold_outlet_temperature,'Â°C'],
-    ['Bellâ€“Delaware design duty',x.bell_delaware_design_duty*4184/3600,'W'],
+    ['Predicted hot outlet temperature',x.hot_outlet_temperature,'°C'],
+    ['Predicted cold outlet temperature',x.cold_outlet_temperature,'°C'],
+    ['Bell–Delaware design duty',x.bell_delaware_design_duty*4184/3600,'W'],
     ['Predicted/design duty',x.duty_ratio===null?null:x.duty_ratio*100,'%']
   ];
   $('ntuRows').replaceChildren();
@@ -214,7 +214,7 @@ function showFluids(response){
  for(const side of ['hot','cold']){
    const rec=audit[side];if(!rec)continue;
    const names=side==='hot'?'Hot stream':'Cold stream';
-   lines.push(`${names}: ${rec.medium}; mean temperature ${format(rec.temperature_bulk_c)} Â°C; wall temperature ${format(rec.temperature_wall_c)} Â°C; absolute pressure ${format(rec.pressure_pa/100000)} bar(a).`);
+   lines.push(`${names}: ${rec.medium}; mean temperature ${format(rec.temperature_bulk_c)} °C; wall temperature ${format(rec.temperature_wall_c)} °C; absolute pressure ${format(rec.pressure_pa/100000)} bar(a).`);
    const rows=SIDE_ROWS[side];const props=rec.bulk;
    const numbers=[props.density,props.viscosity,props.specific_heat,props.conductivity,rec.wall_viscosity_pa_s];
    for(let i=0;i<rows.length;i++){
@@ -224,19 +224,19 @@ function showFluids(response){
  $('fluidStatus').textContent=lines.length?lines.join(' '):'Manual fluid properties active on both sides.';
 }
 function recordManualStep(x) {
-  // Only the hot outlet is fed back. Cold outlet (row 24) is derived by Bellâ€“Delaware.
+  // Only the hot outlet is fed back. Cold outlet (row 24) is derived by Bell–Delaware.
   const assumed = Number(state.inputs['12']);
   const predicted = x.hot_outlet_temperature;
   const delta = predicted - assumed;
   state.lastNTU = x;
   state.manualHistory.push({assumed, predicted, delta, cold:x.cold_outlet_temperature});
   $('feedbackStep').textContent = `Calculation ${state.manualHistory.length}`;
-  $('feedbackAssumed').textContent = `${format(assumed, 4)} Â°C`;
-  $('feedbackPredicted').textContent = `${format(predicted, 4)} Â°C`;
+  $('feedbackAssumed').textContent = `${format(assumed, 4)} °C`;
+  $('feedbackPredicted').textContent = `${format(predicted, 4)} °C`;
   $('feedbackDifference').textContent = `${format(delta, 4)} K`;
-  $('feedbackTransfer').textContent = `${format(predicted, 4)} Â°C (Îµ-NTU hot outlet) â†’ Hot stream: assumed outlet (input)`;
+  $('feedbackTransfer').textContent = `${format(predicted, 4)} °C (ε-NTU hot outlet) → Hot stream: assumed outlet (input)`;
   $('feedbackBtn').disabled = false;
-  $('feedbackStatus').textContent = `Next click applies ${format(predicted,4)} Â°C and runs one new calculation. No automatic iteration.`;
+  $('feedbackStatus').textContent = `Next click applies ${format(predicted,4)} °C and runs one new calculation. No automatic iteration.`;
   $('feedbackHistoryRows').replaceChildren();
   for (let i=0;i<state.manualHistory.length;i++) {
     const item=state.manualHistory[i], tr=document.createElement('tr');
@@ -261,13 +261,13 @@ async function applyFeedback() {
   clearTimeout(state.refreshTimer);
   if (latestDerivedController) latestDerivedController.abort();
   $('results').hidden=true;
-  $('calculationStatus').textContent='One manual feedback step: recalculatingâ€¦';
+  $('calculationStatus').textContent='One manual feedback step: recalculating…';
   await run();
 }
 
 
 async function run(){
- $('calculateBtn').disabled=true;errorMessage('');$('calculationStatus').textContent='Calculatingâ€¦';
+ $('calculateBtn').disabled=true;errorMessage('');$('calculationStatus').textContent='Calculating…';
  const inputSnapshot=JSON.stringify(state.inputs);
  try{
   const response=await fetch(`${API_URL}/${NTU_MODE ? "calculate-ntu" : "calculate"}`,{method:'POST',headers:{'Content-Type':'application/json'},
@@ -322,9 +322,8 @@ async function init(){
     } catch(e){$('fluidStatus').textContent='Failed to load fluid list: '+e.message;}
     updatePropertyMode(); }
   $('calculateBtn').addEventListener('click',run);
-  $('calculateBtn').disabled=false;$('apiStatus').textContent='â— Backend connected';
+  $('calculateBtn').disabled=false;$('apiStatus').textContent='● Backend connected';
   populateDefaults();
- }catch(err){$('apiStatus').textContent='â— Backend offline';errorMessage('Failed to load default values: '+err.message+'\nStart backend on 127.0.0.1:8001.');}
+ }catch(err){$('apiStatus').textContent='● Backend offline';errorMessage('Failed to load default values: '+err.message+'\nStart backend on 127.0.0.1:8001.');}
 }
 init();
-

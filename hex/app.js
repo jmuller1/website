@@ -1,6 +1,6 @@
 // Local: http://127.0.0.1:8001  |  Live: https://hex-api.jmuller.be (set when deployed)
+// const API_URL = 'http://127.0.0.1:8001';
 const API_URL = 'https://hex-api.jmuller.be';
-// const API_URL = 'https://hex-api.jmuller.be';
 const NTU_MODE = /(?:^|\/)ntu\.html$/i.test(window.location.pathname);
 const state = { data: null, inputs: {}, refreshSeq: 0, refreshTimer: null, lastNTU: null, manualHistory: [] };
 const $ = id => document.getElementById(id);
@@ -9,7 +9,7 @@ function format(value, significant = 4) {
   if (typeof value === 'string' && isNaN(Number(value))) return value;
   const n = Number(value);
   if (!Number.isFinite(n)) return '—';
-  return n.toLocaleString('en-US', {
+  return n.toLocaleString('nl-NL', {
     maximumSignificantDigits: significant,
     useGrouping: false
   });

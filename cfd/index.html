@@ -121,6 +121,16 @@
       font-weight: bold;
     }
 
+    .gridCel.wand {
+      background: #555555;
+      color: #ffffff;
+      font-weight: bold;
+    }
+
+    .kleurWand {
+      background: #555555;
+    }
+
     .kleurVakje {
       display: inline-block;
       width: 14px;
@@ -310,12 +320,16 @@
   </fieldset>
 
   <fieldset>
-    <legend>Bovenaanzicht inlaat en uitstroom</legend>
+    <legend>Bovenaanzicht: inlaat, uitstroom en wanden</legend>
 
     <p>
       Kies eerst wat je wilt plaatsen en klik daarna cellen aan in het grid.
-      Bij boveninstroom en bovenuitstroom worden deze coördinaten gebruikt als
-      <strong>[x, y]</strong>.
+      Bij inlaat en uitstroom worden deze coördinaten gebruikt als
+      <strong>[x, y]</strong>. Bij <strong>Wand</strong> toont een cel de
+      hoogte in Z-cellen vanaf de vloer. De eerste klik plaatst een wand over
+      de volledige hoogte. Elke volgende klik verlaagt de hoogte met één Z-cel;
+      na hoogte 1 begint de cyclus opnieuw op de volledige hoogte.
+      Kies <strong>Wand verwijderen</strong> om een wandcel leeg te maken.
     </p>
 
     <div class="selectieModus">
@@ -337,6 +351,16 @@
         >
         Uitstroom selecteren
       </label>
+
+      <label>
+        <input type="radio" name="selectieModus" value="wand">
+        Wand plaatsen / verhogen
+      </label>
+
+      <label>
+        <input type="radio" name="selectieModus" value="wandWissen">
+        Wand verwijderen
+      </label>
     </div>
 
     <div id="inlaatGridContainer">
@@ -353,6 +377,12 @@
       <span class="kleurVakje kleurUitlaat"></span>
       Geselecteerde uitstroompunten:
       <span id="geselecteerdeUitlaten">geen</span>
+    </p>
+
+    <p class="gridUitleg">
+      <span class="kleurVakje kleurWand"></span>
+      Wanden (x, y, hoogte in Z-cellen):
+      <span id="geselecteerdeWanden">geen</span>
     </p>
   </fieldset>
 

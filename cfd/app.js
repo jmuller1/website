@@ -90,6 +90,12 @@ const geselecteerdeInlaten =
 const geselecteerdeUitlaten =
   new Set();
 
+// Per x,y-cel bewaren we de hoogte in Z-cellen, vanaf z=1.
+const geselecteerdeWanden = new Map();
+
+const geselecteerdeWandenEl =
+  document.getElementById("geselecteerdeWanden");
+
 
 btnBereken.addEventListener(
   "click",
@@ -318,9 +324,11 @@ function maakInlaatGrid() {
   ) {
     geselecteerdeInlaten.clear();
     geselecteerdeUitlaten.clear();
+    geselecteerdeWanden.clear();
 
     updateGeselecteerdeInlatenTekst();
     updateGeselecteerdeUitlatenTekst();
+    updateGeselecteerdeWandenTekst();
 
     return;
   }
@@ -332,6 +340,7 @@ function maakInlaatGrid() {
     gridX,
     gridY
   );
+  verwijderOngeldigeWanden(gridX, gridY, leesGridwaarde(gridZEl));
 
   verwijderTeDichteRoosterSelecties();
 
@@ -388,6 +397,7 @@ function maakInlaatGrid() {
 
   updateGeselecteerdeInlatenTekst();
   updateGeselecteerdeUitlatenTekst();
+  updateGeselecteerdeWandenTekst();
 }
 
 
@@ -441,6 +451,7 @@ function toggleCel(x, y, knop) {
 
       geselecteerdeInlaten.add(key);
       geselecteerdeUitlaten.delete(key);
+      geselecteerdeWanden.delete(key);
     }
 
   } else if (modus === "uitlaat") {
@@ -467,7 +478,29 @@ function toggleCel(x, y, knop) {
 
       geselecteerdeUitlaten.add(key);
       geselecteerdeInlaten.delete(key);
+      geselecteerdeWanden.delete(key);
     }
+  } else if (modus === "wand") {
+    const maximumHoogte = leesGridwaarde(gridZEl);
+    if (maximumHoogte < 1) {
+      statusEl.textContent = "Vul eerst een geldig aantal Z-cellen in.";
+      return;
+    }
+
+    const huidigeHoogte = geselecteerdeWanden.get(key) || 0;
+    // Eerste klik: volledige kamerhoogte. Daarna per klik één Z-cel lager.
+    // Bij hoogte 1 begint de cyclus opnieuw op de maximale hoogte.
+    const nieuweHoogte = huidigeHoogte === 0 || huidigeHoogte === 1
+      ? maximumHoogte
+      : huidigeHoogte - 1;
+
+    geselecteerdeWanden.set(key, nieuweHoogte);
+    // Een geselecteerde roosterpositie kan geen wandcel zijn.
+    geselecteerdeInlaten.delete(key);
+    geselecteerdeUitlaten.delete(key);
+
+  } else if (modus === "wandWissen") {
+    geselecteerdeWanden.delete(key);
   }
 
   updateCelWeergave(
@@ -477,6 +510,7 @@ function toggleCel(x, y, knop) {
 
   updateGeselecteerdeInlatenTekst();
   updateGeselecteerdeUitlatenTekst();
+  updateGeselecteerdeWandenTekst();
 
   statusEl.textContent =
     "";
@@ -621,8 +655,18 @@ function verwijderTeDichteRoosterSelecties() {
 function updateCelWeergave(knop, key) {
   knop.classList.remove(
     "inlaat",
-    "uitlaat"
+    "uitlaat",
+    "wand"
   );
+
+  const hoogte = geselecteerdeWanden.get(key);
+  // Bij een wandcel komt de hoogte op de plek van de coördinaten.
+  knop.textContent = hoogte ? String(hoogte) : key;
+  knop.title = hoogte ? `Wand op [${key}], hoogte ${hoogte} Z-cellen` : `Cel [${key}]`;
+  if (hoogte) {
+    knop.classList.add("wand");
+    return;
+  }
 
   if (geselecteerdeInlaten.has(key)) {
     knop.classList.add(
@@ -695,6 +739,47 @@ function verwijderOngeldigeSelecties(gridX, gridY) {
   if (isGewijzigd) {
     slaInstellingenOp();
   }
+}
+
+
+function getGeselecteerdeWanden() {
+  return Array.from(geselecteerdeWanden.entries())
+    .map(([key, hoogte]) => {
+      const [x, y] = key.split(",").map(Number);
+      return [x, y, hoogte];
+    })
+    .sort((a, b) => b[1] - a[1] || a[0] - b[0]);
+}
+
+
+function updateGeselecteerdeWandenTekst() {
+  const wanden = getGeselecteerdeWanden();
+  geselecteerdeWandenEl.textContent = wanden.length
+    ? wanden.map(([x, y, hoogte]) => `[${x}, ${y}, ${hoogte}]`).join(", ")
+    : "geen";
+}
+
+
+function verwijderOngeldigeWanden(gridX, gridY, gridZ) {
+  for (const [key, hoogte] of Array.from(geselecteerdeWanden.entries())) {
+    const [x, y] = key.split(",").map(Number);
+    if (x < 1 || x > gridX || y < 1 || y > gridY || gridZ < 1) {
+      geselecteerdeWanden.delete(key);
+    } else if (hoogte > gridZ) {
+      geselecteerdeWanden.set(key, gridZ);
+    }
+  }
+}
+
+
+// Elke geselecteerde x,y-positie is een verticale blokkade van z=1 t/m hoogte.
+// De CFD-rekenmotor gebruikt uitsluitend snelheidsfactoren 0 of 1.
+function maakWandenPayload() {
+  const wanden = getGeselecteerdeWanden().map(([x, y, hoogte]) =>
+    [x, x, y, y, 1, hoogte, 0, 0, 0]
+  );
+  // De bestaande solver kan ook een lege lijst verwerken.
+  return wanden;
 }
 
 
@@ -788,7 +873,8 @@ function getInputSignature() {
     tinlaat: tinlaatEl.value,
     vloerTemperatuur: vloerTemperatuurEl.value,
     inlaten: getGeselecteerdeInlaten(),
-    uitlaten: getGeselecteerdeUitlaten()
+    uitlaten: getGeselecteerdeUitlaten(),
+    wanden: getGeselecteerdeWanden()
   };
 
   return JSON.stringify(inputSnapshot);
@@ -870,6 +956,7 @@ function slaInstellingenOp() {
     vloerTemperatuur: vloerTemperatuurEl.value,
     inlaten: getGeselecteerdeInlaten(),
     uitlaten: getGeselecteerdeUitlaten(),
+    wanden: getGeselecteerdeWanden(),
     selectieModus: getSelectieModus()
   };
 
@@ -951,6 +1038,18 @@ function laadInstellingen() {
 
     geselecteerdeInlaten.clear();
     geselecteerdeUitlaten.clear();
+    geselecteerdeWanden.clear();
+
+    if (Array.isArray(instellingen.wanden)) {
+      for (const wand of instellingen.wanden) {
+        if (!Array.isArray(wand) || wand.length !== 3) continue;
+        const [x, y, hoogte] = wand.map(Number);
+        if (Number.isInteger(x) && Number.isInteger(y) &&
+            Number.isInteger(hoogte) && hoogte >= 1) {
+          geselecteerdeWanden.set(maakCelKey(x, y), hoogte);
+        }
+      }
+    }
 
     if (Array.isArray(instellingen.inlaten)) {
       for (const inlaat of instellingen.inlaten) {
@@ -1062,6 +1161,7 @@ function resetNaarStandaardInstellingen() {
 
   geselecteerdeInlaten.clear();
   geselecteerdeUitlaten.clear();
+  geselecteerdeWanden.clear();
 
   const inlaatRadio =
     document.querySelector(
@@ -1078,6 +1178,7 @@ function resetNaarStandaardInstellingen() {
 
   updateGeselecteerdeInlatenTekst();
   updateGeselecteerdeUitlatenTekst();
+  updateGeselecteerdeWandenTekst();
 
   resultaatNavigatie.style.display =
     "none";
@@ -1256,9 +1357,7 @@ async function runCalculation() {
       maxdv: 0.07,
       Tcon: temperatuurRekenen,
 
-      wanden: [
-        [0, 0, 0, 0, 0, 0]
-      ],
+      wanden: maakWandenPayload(),
 
       kachels: [
         [6, 1, 1],
@@ -1275,7 +1374,6 @@ async function runCalculation() {
       Tref: 20,
       Tinlaat: tinlaat,
       maxdT: 0.2, //aangepast
-      impfac: 0
     };
 
     const response =
@@ -1364,7 +1462,9 @@ async function runCalculation() {
       `${JSON.stringify(inlaten)}
 ` +
       `Uitstroompunten: ` +
-      `${JSON.stringify(uitlaten)}`;
+      `${JSON.stringify(uitlaten)}\n` +
+      `Wanden [x, y, hoogte]: ` +
+      `${JSON.stringify(getGeselecteerdeWanden())}`;
 
     plotAfbeelding.src =
       `${API_URL}${data.plot_url}` +
